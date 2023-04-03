@@ -1,24 +1,19 @@
-//role assignments for container registry
+//role assignment for container registry
 resource "azurerm_role_assignment" "acrpull_identity_server_app" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_container_app.identity_server_app.identity.0.principal_id
-}
-
-resource "azurerm_role_assignment" "acrpull_onboarding_app" {
-  scope                = azurerm_container_registry.acr.id
-  role_definition_name = "AcrPull"
-  principal_id         = azurerm_container_app.onboarding_app.identity.0.principal_id
+  principal_id         = azurerm_user_assigned_identity.acr_pull_identity.principal_id
 }
 
 
 //container registry
 resource "azurerm_container_registry" "acr" {
-  name                = "cronboaring"
+  name                = "cronboarding"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   sku                 = "Premium"
   admin_enabled       = false
+  public_network_access_enabled = true
 }
 
 //enable private link for container registry

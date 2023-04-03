@@ -363,5 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 */.terraform/*
 */.terraform.lock.hcl
-Remote/ExternalScreening.Idp/keys/is-signing-key-ADEC34AA3E0AEADB37D278E9CE7C524F.json
-Remote/ExternalScreening.Idp/tempkey.jwk
+
+Remote/ExternalScreening.Idp/keys/*
+*.jwk

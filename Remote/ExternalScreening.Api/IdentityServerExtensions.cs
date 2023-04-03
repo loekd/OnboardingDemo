@@ -29,6 +29,16 @@ namespace ExternalScreening.Api
         /// </summary>
         [StringLength(128, MinimumLength = 2)]
         public string RequiredReadWriteScope { get; set; } = "Screening.ReadWrite";
+
+        /// <summary>
+        /// Optional allowed token issuer FQDN
+        /// </summary>
+        public string? Issuer { get; set; }
+
+        public override string ToString()
+        {
+            return $"Auth: {Authority} - Aud: {Audience} - Scp: {RequiredReadWriteScope} - Iss:{Issuer ?? Authority}";
+        }
     }
 
     public static class IdentityServerExtensions
@@ -39,16 +49,35 @@ namespace ExternalScreening.Api
         {
             var idsrvConfig = builder.Configuration
                 .GetRequiredSection(IdentityServerOptions.ConfigurationSectionName)
-                .Get<IdentityServerOptions>();
+                .Get<IdentityServerOptions>()!;
+
+            Console.WriteLine($"Identity Server Config: {idsrvConfig}");
+            Console.WriteLine($"Environment IdentityServer__Authority: {Environment.GetEnvironmentVariable("IdentityServer__Authority")}");
 
             //Use JWT bearer tokens for authentication
             builder.Services.AddAuthentication("Bearer")
                         .AddJwtBearer(options =>
                         {
+                            Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
                             options.Authority = idsrvConfig.Authority;
                             options.TokenValidationParameters.ValidateAudience = true;
                             options.TokenValidationParameters.ValidAudience = idsrvConfig.Audience;
+                            options.TokenValidationParameters.ValidIssuer = idsrvConfig.Issuer ?? idsrvConfig.Authority; //new[] { "https://localhost:8445", "http://screening-idp", "https://localhost:7242" }; //container through host, container direct, standalone
+
+                            options.RequireHttpsMetadata = false;
+
+                            options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents();
+                            options.Events.OnAuthenticationFailed = ctx =>
+                            {
+                                return Task.CompletedTask;
+                            };
+
+                            options.Events.OnTokenValidated = ctx =>
+                            {
+                                return Task.CompletedTask;
+                            };
                         });
+
 
             //Require authenticated users
             //Require read-write scope
