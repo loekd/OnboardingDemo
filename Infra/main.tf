@@ -1,7 +1,7 @@
 //main resource group
 resource "azurerm_resource_group" "rg" {
   name     = "Onboarding"
-  location = "West Europe"
+  location = var.location
 }
 
 //log analytics workspace
@@ -39,7 +39,7 @@ resource "azurerm_container_app" "identity_server_app" {
   template {
     container {
       name   = "screening-idp"
-      image  = "cronboarding.azurecr.io/externalscreeningidp:latest"
+      image  = "cronboarding.azurecr.io/externalscreeningidp:${var.identity_server_app_version}"
       cpu    = 0.25
       memory = "0.5Gi"
     }
@@ -77,7 +77,7 @@ resource "azurerm_container_app" "screening_api_app" {
   template {
     container {
       name   = "screening-api"
-      image  = "cronboarding.azurecr.io/externalscreeningapi:latest"
+      image  = "cronboarding.azurecr.io/externalscreeningapi:${var.screening_api_app_version}"
       cpu    = 0.25
       memory = "0.5Gi"
       env {
@@ -119,9 +119,9 @@ resource "azurerm_container_app" "onboarding_app" {
   template {
     container {
       name   = "onboarding-app"
-      image  = "cronboarding.azurecr.io/onboardingserver:latest"
-      cpu    = 0.25
-      memory = "0.5Gi"
+      image  = "cronboarding.azurecr.io/onboardingserver:${var.onboarding_app_version}"
+      cpu    = 0.50
+      memory = "1Gi"
     }
   }
   ingress {

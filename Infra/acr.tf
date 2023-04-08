@@ -14,6 +14,16 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Premium"
   admin_enabled       = false
   public_network_access_enabled = true
+  network_rule_set = [
+    {
+      default_action = "Deny"
+      ip_rule = [{
+        action = "Allow"
+        ip_range = var.acr_client_ip
+      }]
+
+      virtual_network = []
+    }]
 }
 
 //enable private link for container registry

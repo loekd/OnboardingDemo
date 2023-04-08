@@ -18,6 +18,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExternalScreening.Idp", "Re
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{CD3833C6-E93C-46F1-A823-9A39572BB6D4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_SolutionItems", "_SolutionItems", "{8ECF908B-44A7-4591-A5D7-5AEE53C682DF}"
+	ProjectSection(SolutionItems) = preProject
+		Infra\acr.tf = Infra\acr.tf
+		Infra\global_vars.tf = Infra\global_vars.tf
+		Infra\main.tf = Infra\main.tf
+		Infra\provider.tf = Infra\provider.tf
+		Infra\push_images.cmd = Infra\push_images.cmd
+		Infra\terraform.tf = Infra\terraform.tf
+		Infra\variables.tf = Infra\variables.tf
+		Infra\vnet.tf = Infra\vnet.tf
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
