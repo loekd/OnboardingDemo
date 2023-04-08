@@ -366,3 +366,4 @@ FodyWeavers.xsd
 
 Remote/ExternalScreening.Idp/keys/*
 *.jwk
+Infra/variables.auto.tfvars
