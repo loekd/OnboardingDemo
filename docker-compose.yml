@@ -1,0 +1,32 @@
+version: '3.4'
+
+services:
+  onboarding.server:
+    container_name: "onboarding-app"
+    image: ${DOCKER_REGISTRY-}onboardingserver
+    build:
+      context: .
+      dockerfile: Server/Dockerfile
+    networks:
+      - onboarding-network
+
+  externalscreening.api:
+    container_name: "screening-api"
+    image: ${DOCKER_REGISTRY-}externalscreeningapi
+    build:
+      context: .
+      dockerfile: Remote/ExternalScreening.Api/Dockerfile
+    networks:
+      - onboarding-network
+
+  externalscreening.idp:
+    container_name: "screening-idp"
+    image: ${DOCKER_REGISTRY-}externalscreeningidp
+    build:
+      context: .
+      dockerfile: Remote/ExternalScreening.Idp/Dockerfile
+    networks:
+      - onboarding-network
+
+networks:
+    onboarding-network:

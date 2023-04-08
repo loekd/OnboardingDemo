@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "onboarding.server": "StartDebugging",
+        "externalscreening.api": "StartDebugging",
+        "externalscreening.idp": "StartDebugging"
+      }
+    }
+  }
+}

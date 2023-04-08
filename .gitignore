@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+*/.terraform/*
+*/.terraform.lock.hcl
+
+Remote/ExternalScreening.Idp/keys/*
+*.jwk
+Infra/variables.auto.tfvars
