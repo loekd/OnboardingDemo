@@ -1,9 +1,42 @@
 ﻿@page "/"
+@inherits IndexModel
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Onboarding</h1>
 
-Welcome to your new app.
+@if (base.IsLoading)
+{
+<h3>Loading...</h3>
+}
+else
+{
+    <MudTable Items="@base.Items" Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" OnRowClick="@RowClicked" T="Onboarding.Shared.OnboardingModel">
+        <NoRecordsContent>
+            <MudText>Loading</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+        <ColGroup>
+            <col style="width: 54px;"/>
+            <col />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh></MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>
+            </MudTd>
+            <MudTd>
+                <OnboardingDetails SelectedItem="context" />
+            </MudTd>
+        </RowTemplate>
+
+    </MudTable>
+
+    <MudButton StartIcon="@Icons.Material.Filled.CheckCircle" Color="Color.Default" OnClick="HandleCreateDialog">Create new onboarding</MudButton>
+}

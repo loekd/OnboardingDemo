@@ -1,0 +1,26 @@
+﻿@inherits CreateOnboardingModel
+
+<h3>Create new onboarding</h3>
+
+<EditForm Model="@SelectedItem" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
+    <MudDialog>
+        <DialogContent>
+            <MudCard>
+                <MudCardContent>
+                    <MudText>Onboarding details</MudText>
+
+                    <MudText Typo="Typo.body2">Create</MudText>
+
+                    <MudTextField @bind-Value="SelectedItem!.FirstName" Label="First name" Variant="Variant.Text"></MudTextField>
+                    <MudTextField @bind-Value="SelectedItem!.LastName" Label="Last name" Variant="Variant.Text"></MudTextField>
+                    <MudCheckBox @bind-Checked="SelectedItem!.RequestExternalScreening" Label="Request external screening"></MudCheckBox>
+                </MudCardContent>
+            </MudCard>
+        </DialogContent>
+        <DialogActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" Size="Size.Small">Save</MudButton>
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Cancel" Color="Color.Primary" Size="Size.Small" OnClick="Cancel">Cancel</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
