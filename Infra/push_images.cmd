@@ -1,5 +1,5 @@
 az acr login -n cronboarding
-$version = "0.11"
+$version = "0.12"
 
 #idp
 docker build -f "D:\Projects\gh\Onboarding\Remote\ExternalScreening.Idp\Dockerfile" --force-rm -t externalscreeningidp  --label "com.microsoft.created-by=visual-studio" --label "com.microsoft.visual-studio.project-name=ExternalScreening.Idp" "D:\Projects\gh\Onboarding"
