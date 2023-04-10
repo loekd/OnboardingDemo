@@ -19,7 +19,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - IdentityServer__Authority=http://screening-idp
-      - IdentityServer__Issuer=https://screening-idp
+      - IdentityServer__Issuers=https://screening-idp;https://localhost:8445
     ports:
       - "8081:80"
       - "8444:443"

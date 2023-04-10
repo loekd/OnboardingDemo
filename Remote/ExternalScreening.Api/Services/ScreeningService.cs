@@ -8,7 +8,7 @@ public interface IScreeningService
     Task AddScreening(ScreeningEntity screening);
     ValueTask<ScreeningEntity?> GetScreening(Guid id);
     Task<IEnumerable<ScreeningEntity>> GetScreenings();
-    Task UpdateScreeningStatus(Guid id, bool isApproved);
+    Task UpdateScreeningStatus(Guid id, bool? isApproved);
 }
 
 public class ScreeningService : IScreeningService
@@ -20,6 +20,8 @@ public class ScreeningService : IScreeningService
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        dbContext.Database.EnsureCreated();
     }
 
     public ValueTask<ScreeningEntity?> GetScreening(Guid id)
@@ -27,7 +29,7 @@ public class ScreeningService : IScreeningService
         return _dbContext.ScreeningEntities.FindAsync(id);
     }
 
-    public Task UpdateScreeningStatus(Guid id, bool isApproved)
+    public Task UpdateScreeningStatus(Guid id, bool? isApproved)
     {
         _logger.LogTrace("Updating screening {Id} to {Status}", id, isApproved);
 

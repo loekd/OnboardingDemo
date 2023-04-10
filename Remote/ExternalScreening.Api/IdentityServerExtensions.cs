@@ -31,13 +31,13 @@ namespace ExternalScreening.Api
         public string RequiredReadWriteScope { get; set; } = "Screening.ReadWrite";
 
         /// <summary>
-        /// Optional allowed token issuer FQDN
+        /// Allowed token issuer FQDN, concatenated by ';'
         /// </summary>
-        public string? Issuer { get; set; }
+        public string Issuers { get; set; } = "https://localhost:7242";
 
         public override string ToString()
         {
-            return $"Auth: {Authority} - Aud: {Audience} - Scp: {RequiredReadWriteScope} - Iss:{Issuer ?? Authority}";
+            return $"Auth: {Authority} - Aud: {Audience} - Scp: {RequiredReadWriteScope} - Iss:{Issuers}";
         }
     }
 
@@ -62,8 +62,14 @@ namespace ExternalScreening.Api
                             options.Authority = idsrvConfig.Authority;
                             options.TokenValidationParameters.ValidateAudience = true;
                             options.TokenValidationParameters.ValidAudience = idsrvConfig.Audience;
-                            options.TokenValidationParameters.ValidIssuer = idsrvConfig.Issuer ?? idsrvConfig.Authority; //new[] { "https://localhost:8445", "http://screening-idp", "https://localhost:7242" }; //container through host, container direct, standalone
-
+                            if (!string.IsNullOrWhiteSpace(idsrvConfig.Issuers))
+                            {
+                                options.TokenValidationParameters.ValidIssuers = idsrvConfig.Issuers.Split(';'); //new[] { "https://localhost:8445", "http://screening-idp", "https://localhost:7242" }; //container through host, container direct, standalone
+                            }
+                            else
+                            {
+                                options.TokenValidationParameters.ValidIssuer = idsrvConfig.Authority;
+                            }
                             options.RequireHttpsMetadata = false;
 
                             options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents();

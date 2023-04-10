@@ -1,6 +1,6 @@
 ﻿@inherits OnboardingDetailsModel
 
-<MudCard Outlined=true Elevation="5" style="width: 250px;">
+<MudCard Outlined=true Elevation="5" style="width: 350px;">
     <MudCardContent>
         <MudText Typo="Typo.body2">Onboarding details for @SelectedItem!.FirstName @SelectedItem!.LastName</MudText>
 
@@ -46,6 +46,10 @@
                         break;
                     }
             }
+        </MudField>
+
+        <MudField Label="Screening Id:" Variant="Variant.Text">
+            <MudText Label="Screening Id" Variant="Variant.Text">@SelectedItem!.ExternalScreeningId</MudText>
         </MudField>
 
     </MudCardContent>
