@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Xml.Linq;
 
 namespace Onboarding.Shared;
 
@@ -15,8 +16,10 @@ public record OnboardingModel(Guid Id, string FirstName, string LastName, Status
 
 public class CreateOnboardingModel(Guid id, string firstName, string lastName )
 {
+    [Required]
     public string FirstName { get; set; } = firstName;
 
+    [Required]
     public string LastName { get; set; } = lastName;
 
     public Guid Id { get; set; } = id;

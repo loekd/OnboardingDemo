@@ -82,7 +82,7 @@ resource "azurerm_container_app" "screening_api_app" {
       memory = "0.5Gi"
       env {
         name  = "IdentityServer__Authority"
-        value = "https://${azurerm_container_app.identity_server_app.ingress.0.fqdn}"   
+        value = "https://${azurerm_container_app.identity_server_app.ingress.0.fqdn}"
       }
     }
   }
@@ -122,6 +122,14 @@ resource "azurerm_container_app" "onboarding_app" {
       image  = "cronboarding.azurecr.io/onboardingserver:${var.onboarding_app_version}"
       cpu    = 0.50
       memory = "1Gi"
+      env {
+        name  = "ScreeningApi__Endpoint"
+        value = "https://${azurerm_container_app.ca-screening-api.ingress.0.fqdn}"
+      }
+      env {
+        name  = "ScreeningApi__Authority"
+        value = "https://${azurerm_container_app.identity_server_app.ingress.0.fqdn}"
+      }
     }
   }
   ingress {

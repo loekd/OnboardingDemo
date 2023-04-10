@@ -1,4 +1,5 @@
 
+using ExternalScreening.Api.Services;
 using Microsoft.OpenApi.Models;
 
 namespace ExternalScreening.Api;
@@ -16,6 +17,9 @@ public static class Program
             .BindConfiguration(IdentityServerOptions.ConfigurationSectionName)
             .ValidateDataAnnotations();
 
+        builder.Services.AddDbContext<ScreeningDbContext>();
+        builder.Services.AddScoped<IScreeningService, ScreeningService>();
+
         builder.Services.AddControllers();
         builder.ConfigureOpenApiServices();
 
@@ -30,7 +34,7 @@ public static class Program
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+        //app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();

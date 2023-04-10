@@ -46,7 +46,7 @@ public static class PolicyBuilder
                 retryAttempt => TimeSpan.FromSeconds(retryAttempt + Random.Shared.Next(0, 100) / 100D),
                 onRetry: (result, span, index, ctx) =>
                 {
-                    logger.LogWarning("Retry attempt: {index} | Status: {statusCode}", index, result.Result.StatusCode);
+                    logger.LogWarning("Retry attempt: {index} | Status: {statusCode}", index, result.Result?.StatusCode);
                 });
     }
 

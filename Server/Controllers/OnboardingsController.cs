@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
+using Onboarding.Server.Services;
 using Onboarding.Shared;
 
 namespace Onboarding.Server.Controllers
@@ -12,34 +13,44 @@ namespace Onboarding.Server.Controllers
     [RequiredScope(RequiredScopesConfigurationKey = "AzureAd:Scopes")]
     public class OnboardingsController : ControllerBase
     {
-        private readonly ILogger<OnboardingsController> logger;
-        private static readonly List<OnboardingModel> Onboardings = new List<OnboardingModel>
-            {
-                new OnboardingModel(Guid.NewGuid(), "John", "Doe", Status.Pending),
-                new OnboardingModel(Guid.NewGuid(), "Jane", "Doe", Status.Approved),
-                new OnboardingModel(Guid.NewGuid(), "Jack", "Doe", Status.NotApproved),
-                new OnboardingModel(Guid.NewGuid(), "Joey", "Doe", Status.Skipped)
-            };
+        private readonly IOnboardingDataService _onboardingService;
+        private readonly IExternalScreeningService _screeningService;
+        private readonly ILogger<OnboardingsController> _logger;
 
-        public OnboardingsController(ILogger<OnboardingsController> logger)
+        public OnboardingsController(IOnboardingDataService onboardingService, IExternalScreeningService screeningService, ILogger<OnboardingsController> logger)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _onboardingService = onboardingService ?? throw new ArgumentNullException(nameof(onboardingService));
+            _screeningService = screeningService ?? throw new ArgumentNullException(nameof(screeningService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
-            return Ok(Onboardings);
+            _logger.LogTrace("Fetching all onboardings.");
+
+            var all = await _onboardingService.GetOnboardings();
+                
+            return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status)));
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody]CreateOnboardingModel input)
+        public async Task<IActionResult> PostAsync([FromBody]CreateOnboardingModel input)
         {
-            if (input.RequestExternalScreening)
-                Onboardings.Add(new OnboardingModel(input.Id, input.FirstName, input.LastName, Status.Pending));
-            else
-                Onboardings.Add(new OnboardingModel(input.Id, input.FirstName, input.LastName, Status.Skipped));
+            _logger.LogTrace("Registering new onboarding.");
 
+            if (input.RequestExternalScreening)
+            {
+                //store locally
+                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Pending));
+                //request screening with external screening service
+                await _screeningService.RequestScreening(new CreateScreeningRequest(input.FirstName, input.LastName));
+            }
+            else
+                //store locally
+                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped));
+
+            
             return Ok(input);
         }
     }
