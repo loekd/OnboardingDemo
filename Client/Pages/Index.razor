@@ -7,36 +7,19 @@
 
 @if (base.IsLoading)
 {
-<h3>Loading...</h3>
+    <h3>Loading...</h3>
 }
 else
 {
-    <MudTable Items="@base.Items" Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" OnRowClick="@RowClicked" T="Onboarding.Shared.OnboardingModel">
-        <NoRecordsContent>
-            <MudText>Loading</MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText>Loading...</MudText>
-        </LoadingContent>
-
-        <ColGroup>
-            <col style="width: 54px;"/>
-            <col />
-        </ColGroup>
-        <HeaderContent>
-            <MudTh></MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-
-        <RowTemplate>
-            <MudTd>
-            </MudTd>
-            <MudTd>
-                <OnboardingDetails SelectedItem="context" />
-            </MudTd>
-        </RowTemplate>
-
-    </MudTable>
-
     <MudButton StartIcon="@Icons.Material.Filled.CheckCircle" Color="Color.Default" OnClick="HandleCreateDialog">Create new onboarding</MudButton>
+    <MudButton StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Default" OnClick="RefreshData">Refresh</MudButton>
+
+    <MudGrid>
+        @foreach (var item in base.Items)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <OnboardingDetails SelectedItem="@item" />
+            </MudItem>
+        }
+    </MudGrid>
 }

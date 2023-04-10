@@ -40,7 +40,7 @@ public static class PolicyBuilder
         where TService : class
     {
         var logger = serviceProvider.GetRequiredService<ILogger<TService>>();
-        return Polly.Extensions.Http.HttpPolicyExtensions
+        return HttpPolicyExtensions
             .HandleTransientHttpError()
             .WaitAndRetryAsync(retryCount,
                 retryAttempt => TimeSpan.FromSeconds(retryAttempt + Random.Shared.Next(0, 100) / 100D),

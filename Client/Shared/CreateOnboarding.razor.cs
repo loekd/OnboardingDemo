@@ -10,10 +10,10 @@ namespace Onboarding.Client.Shared
         /// <returns></returns>
         protected override Task OnInitializedAsync()
         {
-            if (base.SelectedItem is null)
+            if (SelectedItem is null)
             {
-                base.SelectedItem = new Onboarding.Shared.CreateOnboardingModel();
-                base.IsNew = true;
+                SelectedItem = new Onboarding.Shared.CreateOnboardingModel();
+                IsNew = true;
             }
 
             return base.OnInitializedAsync();

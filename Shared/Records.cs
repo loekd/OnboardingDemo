@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
 
 namespace Onboarding.Shared;
 
@@ -8,11 +7,11 @@ public enum Status
     Unknown = 0,
     Pending = 1,
     Skipped = 2,
-    Approved = 3,
-    NotApproved = 4
+    Passed = 3,
+    NotPassed = 4
 }
 
-public record OnboardingModel(Guid Id, string FirstName, string LastName, Status Status);
+public record OnboardingModel(Guid Id, string FirstName, string LastName, Status Status, string? ImageUrl = null, Guid? ExternalScreeningId = null);
 
 public class CreateOnboardingModel(Guid id, string firstName, string lastName )
 {

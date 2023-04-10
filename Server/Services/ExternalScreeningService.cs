@@ -4,11 +4,11 @@
     
     public record CreateScreeningResponse(Guid ScreeningId, string FirstName, string LastName);
 
-    public record ScreeningResult(string FirstName, string LastName, bool Approved);
+    public record ScreeningResult(string? FirstName, string? LastName, bool? IsApproved);
 
     public interface IExternalScreeningService
     {
-        Task<CreateScreeningResponse?> RequestScreening(CreateScreeningRequest request);
+        Task<CreateScreeningResponse> RequestScreening(CreateScreeningRequest request);
     }
 
     public class ExternalScreeningService : IExternalScreeningService
@@ -24,13 +24,15 @@
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<CreateScreeningResponse?> RequestScreening(CreateScreeningRequest request)
+        public async Task<CreateScreeningResponse> RequestScreening(CreateScreeningRequest request)
         {
+            _logger.LogTrace("Requesting screening");
+
             var response = await _httpClient.PostAsJsonAsync(_apiEndpoint, request);
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<CreateScreeningResponse>();
-            return result;
+            return result!;
         }
     }
 }

@@ -6,4 +6,4 @@ public record CreateScreeningRequest([Required] string FirstName, [Required] str
 
 public record CreateScreeningResponse(Guid ScreeningId, string FirstName, string LastName);
 
-public record ScreeningResult(string FirstName, string LastName, bool Approved);
+public record ScreeningResult(string? FirstName, string? LastName, bool? Approved);

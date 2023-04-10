@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using MudBlazor;
 using Onboarding.Client.Shared;
-using Onboarding.Shared;
 
 namespace Onboarding.Client.Pages;
 
@@ -26,12 +25,12 @@ public class IndexModel : Component<Onboarding.Shared.OnboardingModel>
     /// <returns></returns>
     private async Task LoadData()
     {
-        base.IsLoading = true;
+        IsLoading = true;
         try
         {
-            base.Items.Clear();
-            var result = await base.OnboardingService!.GetAll();
-            base.Items.AddRange(result);
+            Items.Clear();
+            var result = await OnboardingService!.GetAll();
+            Items.AddRange(result);
         }
         catch (AccessTokenNotAvailableException ex)
         {
@@ -39,11 +38,11 @@ public class IndexModel : Component<Onboarding.Shared.OnboardingModel>
         }
         catch (Exception ex)
         {
-            base.Logger!.LogError("Failed to fetch onboarding data. Error: {ErrorMessage}", ex.Message);
+            Logger!.LogError("Failed to fetch onboarding data. Error: {ErrorMessage}", ex.Message);
         }
         finally
         {
-            base.IsLoading = false;
+            IsLoading = false;
         }
     }
 
@@ -63,7 +62,7 @@ public class IndexModel : Component<Onboarding.Shared.OnboardingModel>
         };
 
         var dialog = DialogService!.Show<CreateOnboarding>("", parameters);
-        
+
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -80,10 +79,19 @@ public class IndexModel : Component<Onboarding.Shared.OnboardingModel>
             }
             catch (Exception ex)
             {
-                base.Logger!.LogError("Failed to add onboarding data. Error: {ErrorMessage}", ex.Message);
+                Logger!.LogError("Failed to add onboarding data. Error: {ErrorMessage}", ex.Message);
             }
         }
 
         MiniCheckInPopOverIsOpen = false;
+    }
+
+    /// <summary>
+    /// Refreshes the screen.
+    /// </summary>
+    /// <returns></returns>
+    protected Task RefreshData()
+    {
+        return LoadData();
     }
 }

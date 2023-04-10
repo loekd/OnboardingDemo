@@ -31,25 +31,29 @@ namespace Onboarding.Server.Controllers
 
             var all = await _onboardingService.GetOnboardings();
                 
-            return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status)));
+            return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status, o.ImageUrl, o.ExternalScreeningId)));
         }
 
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]CreateOnboardingModel input)
         {
-            _logger.LogTrace("Registering new onboarding.");
-
             if (input.RequestExternalScreening)
             {
-                //store locally
-                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Pending));
+                _logger.LogTrace("Registering new onboarding with screening.");
+
                 //request screening with external screening service
-                await _screeningService.RequestScreening(new CreateScreeningRequest(input.FirstName, input.LastName));
+                var response = await _screeningService.RequestScreening(new CreateScreeningRequest(input.FirstName, input.LastName));
+
+                //store locally
+                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Pending, "media/man03.png", externalScreeningId: response.ScreeningId));
             }
             else
-                //store locally
-                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped));
+            {
+                _logger.LogTrace("Registering new onboarding.");
 
+                //store locally
+                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped, "media/woman03.png"));
+            }
             
             return Ok(input);
         }

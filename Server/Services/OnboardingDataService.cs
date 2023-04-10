@@ -34,7 +34,14 @@ public class OnboardingDataService : IOnboardingDataService
         _logger.LogTrace("Updating Onboarding {Id} to {Status}", id, isApproved);
 
         var existing = _dbContext.OnboardingEntities.Single(s => s.Id == id);
-        existing.IsApproved = isApproved;
+        if (isApproved)
+        {
+            existing.Status = Shared.Status.Passed;
+        }
+        else
+        {
+            existing.Status = Shared.Status.NotPassed;
+        }
 
         return _dbContext.SaveChangesAsync();
     }

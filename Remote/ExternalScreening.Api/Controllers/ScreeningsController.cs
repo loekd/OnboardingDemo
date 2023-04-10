@@ -39,7 +39,7 @@ public class ScreeningsController : ControllerBase
         var screening = await _screeningService.GetScreening(screeningId);
         if (screening == null) { return NotFound(); }
 
-        var response = new ScreeningResult(screening.FirstName!, screening.LastName!, screening.IsApproved);
+        var response = new ScreeningResult(screening.FirstName, screening.LastName, screening.IsApproved);
 
         return Ok(response);
     }
@@ -50,7 +50,7 @@ public class ScreeningsController : ControllerBase
         _logger.LogTrace("Fetch all screenings");
 
         var screenings = await _screeningService.GetScreenings();
-        var response = screenings.Select(s => new ScreeningResult(s.FirstName!, s.LastName!, s.IsApproved));
+        var response = screenings.Select(s => new ScreeningResult(s.FirstName, s.LastName, s.IsApproved));
 
         return Ok(response);
     }
