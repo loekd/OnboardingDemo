@@ -124,7 +124,7 @@ resource "azurerm_container_app" "onboarding_app" {
       memory = "1Gi"
       env {
         name  = "ScreeningApi__Endpoint"
-        value = "https://${azurerm_container_app.ca-screening-api.ingress.0.fqdn}"
+        value = "https://${azurerm_container_app.screening_api_app.ingress.0.fqdn}"
       }
       env {
         name  = "ScreeningApi__Authority"
