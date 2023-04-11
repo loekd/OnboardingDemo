@@ -45,14 +45,14 @@ namespace Onboarding.Server.Controllers
                 var response = await _screeningService.RequestScreening(new CreateScreeningRequest(input.FirstName, input.LastName));
 
                 //store locally
-                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Pending, "media/man03.png", externalScreeningId: response.ScreeningId));
+                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Pending, "media/Man03.png", externalScreeningId: response.ScreeningId));
             }
             else
             {
                 _logger.LogTrace("Registering new onboarding.");
 
                 //store locally
-                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped, "media/woman03.png"));
+                await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped, "media/Woman03.png"));
             }
             
             return Ok(input);
