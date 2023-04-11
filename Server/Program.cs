@@ -1,25 +1,15 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Logging;
+using Onboarding.Server;
+using Onboarding.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"), subscribeToJwtBearerMiddlewareDiagnosticsEvents: true);
+builder
+    .ConfigureAuth()
+    .ConfigureScreeningService();
 
-//configure auth callbacks
-builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-    options.TokenValidationParameters.ClockSkew = TimeSpan.FromMinutes(30);
-    var existingOnTokenValidatedHandler = options.Events.OnAuthenticationFailed;
-    options.Events.OnAuthenticationFailed = async context =>
-    {
-        await existingOnTokenValidatedHandler(context);
-    };
-});
+builder.Services.AddDbContext<OnboardingDbContext>();
+builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();

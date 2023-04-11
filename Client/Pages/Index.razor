@@ -1,9 +1,25 @@
 ﻿@page "/"
+@inherits IndexModel
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Index (@System.Reflection.Assembly.GetExecutingAssembly().GetName().Version)</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Onboarding</h1>
 
-Welcome to your new app.
+@if (base.IsLoading)
+{
+    <h3>Loading...</h3>
+}
+else
+{
+    <MudButton StartIcon="@Icons.Material.Filled.CheckCircle" Color="Color.Default" OnClick="HandleCreateDialog">Create new onboarding</MudButton>
+    <MudButton StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Default" OnClick="RefreshData">Refresh</MudButton>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+    <MudGrid>
+        @foreach (var item in base.Items)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <OnboardingDetails SelectedItem="@item" />
+            </MudItem>
+        }
+    </MudGrid>
+}

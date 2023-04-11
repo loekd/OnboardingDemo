@@ -1,0 +1,57 @@
+﻿@inherits OnboardingDetailsModel
+
+<MudCard Outlined=true Elevation="5" style="width: 350px;">
+    <MudCardContent>
+        <MudText Typo="Typo.body2">Onboarding details for @SelectedItem!.FirstName @SelectedItem!.LastName</MudText>
+
+        <MudCardMedia Image="@SelectedItem!.ImageUrl" />
+
+        <MudField Label="First name:" Variant="Variant.Text">
+            <MudText Label="First name" Variant="Variant.Text">@SelectedItem!.FirstName</MudText>
+        </MudField>
+
+        <MudField Label="Last name:" Variant="Variant.Text">
+            <MudText Label="Last name" Variant="Variant.Text">@SelectedItem!.LastName</MudText>
+        </MudField>
+
+        <MudField Label="Screening status:" Variant="Variant.Text">
+            @switch (SelectedItem!.Status)
+            {
+                case Onboarding.Shared.Status.NotPassed:
+                    {
+                        <MudBadge Icon="@Icons.Material.Filled.Lock" Color="Color.Error" Overlap="false" Bordered="true" Class="mx-3 my-2">
+                            <MudText Color="Color.Error" Variant="Variant.Filled" DisableElevation="true">Not passed</MudText>
+                        </MudBadge>
+                        break;
+                    }
+                case Onboarding.Shared.Status.Passed:
+                    {
+                        <MudBadge Icon="@Icons.Material.Filled.Check" Color="Color.Success" Overlap="false" Bordered="true" Class="mx-3 my-2">
+                            <MudText Color="Color.Success" Variant="Variant.Filled" DisableElevation="true">Passed</MudText>
+                        </MudBadge>
+                        break;
+                    }
+                case Onboarding.Shared.Status.Pending:
+                    {
+                        <MudBadge Icon="@Icons.Material.Filled.LockClock" Color="Color.Info" Overlap="false" Bordered="true" Class="mx-3 my-2">
+                            <MudText Color="Color.Info" Variant="Variant.Filled" DisableElevation="true">Pending</MudText>
+                        </MudBadge>
+                        break;
+                    }
+                case Onboarding.Shared.Status.Skipped:
+                    {
+                        <MudBadge Icon="@Icons.Material.Filled.SkipNext" Color="Color.Success" Overlap="false" Bordered="true" Class="mx-3 my-2">
+                            <MudText Color="Color.Success" Variant="Variant.Filled" DisableElevation="true">Skipped</MudText>
+                        </MudBadge>
+                        break;
+                    }
+            }
+        </MudField>
+
+        <MudField Label="Screening Id:" Variant="Variant.Text">
+            <MudText Label="Screening Id" Variant="Variant.Text">@SelectedItem!.ExternalScreeningId</MudText>
+        </MudField>
+
+    </MudCardContent>
+
+</MudCard>
