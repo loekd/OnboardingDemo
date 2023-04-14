@@ -1,8 +1,9 @@
 [CmdletBinding()]
 param (
-    [Parameter()]
+    [Parameter(Mandatory)] 
+    [ValidateNotNullOrEmpty()]
     [String]
-    $Version = "0.15",
+    $Version,
     [Parameter()]
     [String]
     $Acr = "cronboarding",
@@ -11,7 +12,10 @@ param (
     $Folder = "D:/Projects/gh/Onboarding",
     [String]
     [ValidateSet('None','ExternalScreeningApi','ExternalScreeningIdp', 'Onboarding', 'All')]
-    $PushOption = 'All'
+    $PushOption = 'All',
+    [switch]    
+    $DeployInfra
+
 )
 
 [Flags()]enum PushOptions
@@ -81,6 +85,17 @@ function Push-Container {
     docker push "${script:Acr}.azurecr.io/${Name}:${script:Version}" > $null
 }
 
+function Deploy-Terraform {
+    param (
+        [String]
+        $InfraFolder = "/Infra"
+    )
+    Write-Host "Deploying Terraform from $script:Folder/$InfraFolder" 
+    Set-Location "$script:Folder/$InfraFolder"
+    terraform apply --auto-approve -var onboarding_app_version=$script:Version -var identity_server_app_version=$script:Version -var screening_api_app_version=$script:Version
+    Pop-Location
+}
+
 Build-Solution -Configuration "Release" -Version $Version
 
 if ($PushOptions -ne [PushOptions]::None){
@@ -89,20 +104,24 @@ if ($PushOptions -ne [PushOptions]::None){
 
 #idp
 if ($PushOptions.HasFlag([PushOptions]::ExternalScreeningIdp)) {
-    Build-Container -Name "externalscreeningidp" -DockerFile "/Remote/ExternalScreening.Idp/Dockerfile" -Path "$script:Folder"
+    Build-Container -Name "externalscreeningidp" -DockerFile "/Remote/ExternalScreening.Idp/Dockerfile" 
     Push-Container -Name "externalscreeningidp"
 }
 
 #external api
 if ($PushOptions.HasFlag([PushOptions]::ExternalScreeningApi)) {
-    Build-Container -Name "externalscreeningapi" -DockerFile "/Remote/ExternalScreening.Api/Dockerfile" -Path "$script:Folder"
+    Build-Container -Name "externalscreeningapi" -DockerFile "/Remote/ExternalScreening.Api/Dockerfile"
     Push-Container -Name "externalscreeningapi"
 }
 
 #onboarding app
 if ($PushOptions.HasFlag([PushOptions]::Onboarding)) {
-    Build-Container -Name "onboardingserver" -DockerFile "/Server/Dockerfile" -Path "$script:Folder"
+    Build-Container -Name "onboardingserver" -DockerFile "/Server/Dockerfile"
     Push-Container -Name "onboardingserver"
+}
+
+if ($true -eq $DeployInfra){
+    Deploy-Terraform
 }
 
 Write-Host "Done!"
