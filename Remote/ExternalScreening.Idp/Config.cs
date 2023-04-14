@@ -9,6 +9,7 @@ namespace ExternalScreening.Api.IdSrv;
 public static class Config
 {
     public const string ScreeningReadWriteScope = "Screening.ReadWrite";
+    public const string OnboardingReadWriteScope = "Onboarding.ReadWrite";
 
     public static IEnumerable<IdentityResource> IdentityResources =>
         new List<IdentityResource>
@@ -32,6 +33,10 @@ public static class Config
             new ApiScope(ScreeningReadWriteScope, "Screening Api Scope")
             {
                 Description = "Access Screening API."
+            },
+            new ApiScope(OnboardingReadWriteScope, "Onboarding Api Scope")
+            {
+                Description = "Access Onboarding API."
             }
         };
 
@@ -43,21 +48,42 @@ public static class Config
                 Description = "Screening API resource",
                 Scopes = { ScreeningReadWriteScope },
                 UserClaims = { "name", "email", "role" },
+            },
+            new ApiResource("api://AzureADTokenExchange", "Onboarding Api Resource")
+            {
+                Description = "Onboarding API resource",
+                Scopes = { OnboardingReadWriteScope },
+                UserClaims = { "name", "email", "role" },
             }
         };
 
     public static IEnumerable<Client> Clients =>
         new List<Client>
         {
-            // machine-to-machine client
+            // machine-to-machine client to protect the screening api
             new Client
             {
-                ClientId = "client",
+                ClientId = "screeningapi",
                 ClientSecrets = { new Secret("secret".Sha256()) },
 
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 // scopes that client has access to
                 AllowedScopes = { ScreeningReadWriteScope }
+            },
+            // machine-to-machine client to access the onboarding api
+            new Client
+            {
+                ClientId = "onboardingapi",
+                ClientSecrets = { new Secret("secret".Sha256()) },
+
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+                // scopes that client has access to
+                AllowedScopes = { OnboardingReadWriteScope },
+                ClientClaimsPrefix = string.Empty,
+                Claims =
+                {
+                    new ClientClaim(JwtClaimTypes.Subject, "ab52009b-9c9a-4a4a-b9f5-ef146b3bc91c")
+                }
             }
         };
 }

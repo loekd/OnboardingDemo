@@ -1,16 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Web.Resource;
 using Onboarding.Server.Services;
 using Onboarding.Shared;
 
 namespace Onboarding.Server.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    [RequiredScope(RequiredScopesConfigurationKey = "AzureAd:Scopes")]
     public class OnboardingsController : ControllerBase
     {
         private readonly IOnboardingDataService _onboardingService;
@@ -24,6 +20,7 @@ namespace Onboarding.Server.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        [Authorize(policy: "ReadAccessPolicy")]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
@@ -34,6 +31,7 @@ namespace Onboarding.Server.Controllers
             return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status, o.ImageUrl, o.ExternalScreeningId)));
         }
 
+        [Authorize(policy: "ReadWriteAccessPolicy")]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]CreateOnboardingModel input)
         {

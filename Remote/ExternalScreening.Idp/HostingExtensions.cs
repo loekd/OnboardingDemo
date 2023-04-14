@@ -9,13 +9,17 @@ internal static class HostingExtensions
     {
         builder.Services.AddRazorPages();
 
-        builder.Services.AddIdentityServer(options => 
+        builder.Services.AddIdentityServer(options =>
             {
+                options.AccessTokenJwtType = "JWT";
+                if (!builder.Environment.IsDevelopment())
+                {
+                    options.IssuerUri = "https://ca-identity-server.politewater-ba7a3a0c.westeurope.azurecontainerapps.io";
+                }
             })
             .AddInMemoryApiResources(Config.ApiResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.Clients)
-            .AddDeveloperSigningCredential();
+            .AddInMemoryClients(Config.Clients);
 
         return builder;
     }
