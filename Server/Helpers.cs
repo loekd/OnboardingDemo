@@ -4,6 +4,8 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Onboarding.Server.Services;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Onboarding.Server;
 
@@ -71,6 +73,13 @@ public static class Helpers
             .ConfigureScreeningIdpClient(config)
             .ConfigureScreeningApiClient(config);
 
+        builder.Services.AddScoped<IExternalScreeningService>(sp =>
+        {
+            var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("Screening.API");
+            var logger = sp.GetRequiredService<ILogger<ExternalScreeningService>>();
+            return new ExternalScreeningService(client, logger);
+        });
+
         return builder;
     }
 
@@ -128,13 +137,6 @@ public static class Helpers
                 return handler;
             });
 
-        builder.Services.AddScoped<IExternalScreeningService>(sp =>
-        {
-            var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("Screening.API");
-            var logger = sp.GetRequiredService<ILogger<ExternalScreeningService>>();
-            return new ExternalScreeningService(client, logger);
-        });
-
         return builder;
     }
 }
@@ -165,5 +167,23 @@ public class RoleOrScopeHandler : AuthorizationHandler<RoleOrScopeRequirement>
         }
 
         return Task.CompletedTask;
+    }
+}
+
+internal static class PolicyBuilder
+{
+    public static Polly.IAsyncPolicy<HttpResponseMessage> GetRetryPolicy<TService>(IServiceProvider serviceProvider,
+        int retryCount = 1)
+        where TService : class
+    {
+        var logger = serviceProvider.GetRequiredService<ILogger<TService>>();
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(retryCount,
+                retryAttempt => TimeSpan.FromSeconds(retryAttempt + Random.Shared.Next(0, 100) / 100D),
+                onRetry: (result, span, index, ctx) =>
+                {
+                    logger.LogWarning("Retry attempt: {index} | Status: {statusCode}", index, result.Result?.StatusCode);
+                });
     }
 }

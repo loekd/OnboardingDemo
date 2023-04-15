@@ -1,45 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Protocols;
 
 namespace ExternalScreening.Api
 {
-    /// <summary>
-    /// Can be bound from configuration to set up Identity Server
-    /// </summary>
-    public class IdentityServerOptions
-    {
-        public const string ConfigurationSectionName = "IdentityServer";
-
-        /// <summary>
-        /// Location of Identity Server
-        /// </summary>
-        [StringLength(128, MinimumLength = 20)]
-        public string Authority { get; set; } = "https://localhost:7242";
-
-        /// <summary>
-        /// Identifier of this API resource.
-        /// The required value of the audience (aud) claim in the token.
-        /// Prevents token forwarding to other services.
-        /// </summary>
-        [StringLength(128, MinimumLength = 2)]
-        public string Audience { get; set; } = "ScreeningAPI";
-
-        /// <summary>
-        /// The scope required to access this API
-        /// </summary>
-        [StringLength(128, MinimumLength = 2)]
-        public string RequiredReadWriteScope { get; set; } = "Screening.ReadWrite";
-
-        /// <summary>
-        /// Allowed token issuer FQDN, concatenated by ';'
-        /// </summary>
-        public string Issuers { get; set; } = "https://localhost:7242";
-
-        public override string ToString()
-        {
-            return $"Auth: {Authority} - Aud: {Audience} - Scp: {RequiredReadWriteScope} - Iss:{Issuers}";
-        }
-    }
 
     public static class IdentityServerExtensions
     {
@@ -59,6 +23,7 @@ namespace ExternalScreening.Api
                         .AddJwtBearer(options =>
                         {
                             Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
+                            options.RequireHttpsMetadata = false;
                             options.Authority = idsrvConfig.Authority;
                             options.TokenValidationParameters.ValidateAudience = true;
                             options.TokenValidationParameters.ValidAudience = idsrvConfig.Audience;
@@ -70,7 +35,7 @@ namespace ExternalScreening.Api
                             {
                                 options.TokenValidationParameters.ValidIssuer = idsrvConfig.Authority;
                             }
-                            options.RequireHttpsMetadata = false;
+                            //options.ConfigurationManager = new CustomConfigurationManager(idsrvConfig.Authority);
 
                             options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents();
                             options.Events.OnAuthenticationFailed = ctx =>
@@ -95,5 +60,64 @@ namespace ExternalScreening.Api
                 })
             );
         }
+    }
+}
+
+public class CustomConfigurationManager : IConfigurationManager<OpenIdConnectConfiguration>
+{
+    private readonly string authority;
+
+    public CustomConfigurationManager(string authority)
+    {
+        this.authority = authority;
+    }
+    public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
+    {
+        var handler = new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator };
+        var httpClient = new HttpClient(handler);
+
+        var request = new HttpRequestMessage
+        {
+            RequestUri = new Uri($"{authority}/.well-known/openid-configuration"),
+            Method = HttpMethod.Get
+        };
+
+        var configurationResult = await httpClient.SendAsync(request, cancel);
+        var resultContent = await configurationResult.Content.ReadAsStringAsync(cancel);
+        if (configurationResult.IsSuccessStatusCode)
+        {
+            var config = OpenIdConnectConfiguration.Create(resultContent);
+            var jwks = config.JwksUri;
+            var keyRequest = new HttpRequestMessage
+            {
+                RequestUri = new Uri(jwks),
+                Method = HttpMethod.Get
+            };
+            var keysResponse = await httpClient.SendAsync(keyRequest, cancel);
+            var keysResultContent = await keysResponse.Content.ReadAsStringAsync(cancel);
+            if (keysResponse.IsSuccessStatusCode)
+            {
+                config.JsonWebKeySet = new Microsoft.IdentityModel.Tokens.JsonWebKeySet(keysResultContent);
+                var signingKeys = config.JsonWebKeySet.GetSigningKeys();
+                foreach (var key in signingKeys)
+                {
+                    config.SigningKeys.Add(key);
+                }
+            }
+            else
+            {
+                throw new Exception($"Failed to get jwks: {keysResponse.StatusCode}: {keysResultContent}");
+            }
+
+            return config;
+        }
+        else
+        {
+            throw new Exception($"Failed to get configuration: {configurationResult.StatusCode}: {resultContent}");
+        }
+    }
+
+    public void RequestRefresh()
+    {
     }
 }

@@ -20,7 +20,9 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_SolutionItems", "_SolutionItems", "{8ECF908B-44A7-4591-A5D7-5AEE53C682DF}"
 	ProjectSection(SolutionItems) = preProject
+		Infra\aca.tf = Infra\aca.tf
 		Infra\acr.tf = Infra\acr.tf
+		Infra\certificate.pfx = Infra\certificate.pfx
 		Infra\global_vars.tf = Infra\global_vars.tf
 		Infra\main.tf = Infra\main.tf
 		Infra\provider.tf = Infra\provider.tf

@@ -20,6 +20,10 @@ namespace Onboarding.Server.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Fetches all onboardings. Can be called by machines and humans.
+        /// </summary>
+        /// <returns></returns>
         [Authorize(policy: "ReadAccessPolicy")]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
@@ -31,28 +35,64 @@ namespace Onboarding.Server.Controllers
             return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status, o.ImageUrl, o.ExternalScreeningId)));
         }
 
+        /// <summary>
+        /// Creates a new onboarding. Can be called by machines and humans.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         [Authorize(policy: "ReadWriteAccessPolicy")]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]CreateOnboardingModel input)
         {
+            input.Id = Guid.NewGuid();
+
             if (input.RequestExternalScreening)
             {
-                _logger.LogTrace("Registering new onboarding with screening.");
-
-                //request screening with external screening service
-                var response = await _screeningService.RequestScreening(new CreateScreeningRequest(input.FirstName, input.LastName));
+                _logger.LogTrace("Requesting screening for Onboarding {OnboardingId} with screening.", input.Id);
+                var response = await _screeningService.RequestScreening(new CreateScreeningRequest(input.FirstName, input.LastName, input.Id));
 
                 //store locally
+                _logger.LogTrace("Registering new Onboarding {OnboardingId}.", input.Id);
                 await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Pending, "media/Man03.png", externalScreeningId: response.ScreeningId));
             }
             else
             {
-                _logger.LogTrace("Registering new onboarding.");
+                _logger.LogTrace("Registering new Onboarding {OnboardingId} without screening.", input.Id);
 
                 //store locally
                 await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped, "media/Woman03.png"));
             }
             
+            return Ok(input);
+        }
+
+        /// <summary>
+        /// Updates an existing onboarding with screening result.
+        /// Can only be called by the external screening API to return the screening result, not by human users.
+        /// </summary>
+        /// <param name="onboardingId"></param>
+        /// <param name="screeningId"></param>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Onboarding.ReadWriteRole")]
+        [HttpPost("{onboardingId:guid}/screenings/{screeningId:guid}")]
+        public async Task<IActionResult> PostScreeningResultAsync(Guid onboardingId, Guid screeningId, [FromBody] ScreeningResult input)
+        {
+            _logger.LogTrace("Registering screening result for onboarding {OnboardingId} with screening {ScreeningID}.", onboardingId, screeningId);
+
+            //find onboarding
+            var onboarding = await _onboardingService.GetOnboarding(onboardingId);
+            if (onboarding == null
+                || onboarding.ExternalScreeningId != screeningId
+                || onboarding.FirstName != input.FirstName
+                || onboarding.LastName != input.LastName)
+            {
+                return NotFound();
+            }
+
+            //store locally
+            await _onboardingService.UpdateOnboardingStatus(onboardingId, input.IsApproved);
+
             return Ok(input);
         }
     }

@@ -12,7 +12,7 @@ namespace Onboarding.Server.Services
 
         [Required]
         [StringLength(200, MinimumLength = 2)]
-        public string? ClientId { get; set; } = "client";
+        public string? ClientId { get; set; } = "screeningapi";
 
         [Required]
         [StringLength(200, MinimumLength = 2)]

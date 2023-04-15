@@ -35,8 +35,8 @@ resource "azurerm_container_app" "identity_server_app" {
     target_port                = 80
     transport                  = "auto"
     traffic_weight {
-      percentage = 100
-      label = "idp"
+      percentage      = 100
+      label           = "idp"
       latest_revision = true
     }
   }
@@ -69,6 +69,14 @@ resource "azurerm_container_app" "screening_api_app" {
         name  = "IdentityServer__Authority"
         value = "https://${azurerm_container_app.identity_server_app.ingress.0.fqdn}"
       }
+      env {
+        name  = "OnboardingApi__Authority"
+        value = "https://${azurerm_container_app.identity_server_app.ingress.0.fqdn}"
+      }
+      env {
+        name  = "OnboardingApi__Endpoint"
+        value = "https://ca-onboarding.politewater-ba7a3a0c.westeurope.azurecontainerapps.io"
+      }
     }
   }
   ingress {
@@ -77,8 +85,8 @@ resource "azurerm_container_app" "screening_api_app" {
     target_port                = 80
     transport                  = "auto"
     traffic_weight {
-      percentage = 100
-      label = "screening"
+      percentage      = 100
+      label           = "screening"
       latest_revision = true
     }
   }
@@ -123,8 +131,8 @@ resource "azurerm_container_app" "onboarding_app" {
     target_port                = 80
     transport                  = "auto"
     traffic_weight {
-      percentage = 100
-      label = "onboarding"
+      percentage      = 100
+      label           = "onboarding"
       latest_revision = true
     }
   }

@@ -8,7 +8,7 @@ public interface IOnboardingDataService
     Task AddOnboarding(OnboardingEntity Onboarding);
     ValueTask<OnboardingEntity?> GetOnboarding(Guid id);
     Task<IEnumerable<OnboardingEntity>> GetOnboardings();
-    Task UpdateOnboardingStatus(Guid id, bool isApproved);
+    Task UpdateOnboardingStatus(Guid id, bool? isApproved);
 }
 
 public class OnboardingDataService : IOnboardingDataService
@@ -29,19 +29,21 @@ public class OnboardingDataService : IOnboardingDataService
         return _dbContext.OnboardingEntities.FindAsync(id);
     }
 
-    public Task UpdateOnboardingStatus(Guid id, bool isApproved)
+    public Task UpdateOnboardingStatus(Guid id, bool? isApproved)
     {
         _logger.LogTrace("Updating Onboarding {Id} to {Status}", id, isApproved);
 
         var existing = _dbContext.OnboardingEntities.Single(s => s.Id == id);
-        if (isApproved)
+        if (isApproved.HasValue && isApproved.Value)
         {
             existing.Status = Shared.Status.Passed;
         }
-        else
+        else if (isApproved.HasValue && !isApproved.Value)
         {
             existing.Status = Shared.Status.NotPassed;
         }
+        else
+            existing.Status = Shared.Status.Pending;
 
         return _dbContext.SaveChangesAsync();
     }

@@ -20,6 +20,8 @@ services:
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - IdentityServer__Authority=http://screening-idp
       - IdentityServer__Issuers=https://screening-idp;https://localhost:8445
+      - OnboardingApi__Endpoint=http://onboarding-app
+      - OnboardingApi__Authority=https://ca-identity-server.politewater-ba7a3a0c.westeurope.azurecontainerapps.io #needs to be reachable by AAD over the public internet
     ports:
       - "8081:80"
       - "8444:443"
@@ -32,6 +34,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=Onboarding
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=certificate.pfx
     ports:
       - "8082:80"
       - "8445:443"
