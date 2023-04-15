@@ -33,7 +33,7 @@ await builder.Build().RunAsync();
 
 
 
-public static class PolicyBuilder
+internal static class PolicyBuilder
 {
     public static Polly.IAsyncPolicy<HttpResponseMessage> GetRetryPolicy<TService>(IServiceProvider serviceProvider,
         int retryCount = 1)

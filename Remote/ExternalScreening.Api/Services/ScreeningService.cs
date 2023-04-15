@@ -8,7 +8,7 @@ public interface IScreeningService
     Task AddScreening(ScreeningEntity screening);
     ValueTask<ScreeningEntity?> GetScreening(Guid id);
     Task<IEnumerable<ScreeningEntity>> GetScreenings();
-    Task UpdateScreeningStatus(Guid id, bool? isApproved);
+    Task UpdateScreeningStatus(ScreeningEntity screening);
 }
 
 public class ScreeningService : IScreeningService
@@ -24,17 +24,23 @@ public class ScreeningService : IScreeningService
         dbContext.Database.EnsureCreated();
     }
 
-    public ValueTask<ScreeningEntity?> GetScreening(Guid id)
+    public async ValueTask<ScreeningEntity?> GetScreening(Guid id)
     {
-        return _dbContext.ScreeningEntities.FindAsync(id);
+        var instance = await _dbContext
+            .ScreeningEntities
+            .AsNoTracking()
+            .SingleOrDefaultAsync(s => s.Id == id);
+
+        return instance;
     }
 
-    public Task UpdateScreeningStatus(Guid id, bool? isApproved)
+    public Task UpdateScreeningStatus(ScreeningEntity screening)
     {
-        _logger.LogTrace("Updating screening {Id} to {Status}", id, isApproved);
+        _logger.LogTrace("Updating screening {Id}", screening.Id);
 
-        var existing = _dbContext.ScreeningEntities.Single(s => s.Id == id);
-        existing.IsApproved = isApproved;
+        var existing = _dbContext.ScreeningEntities.Single(s => s.Id == screening.Id);
+
+        existing.IsApproved = screening.IsApproved;
 
         return _dbContext.SaveChangesAsync();
     }
@@ -50,7 +56,10 @@ public class ScreeningService : IScreeningService
 
     public async Task<IEnumerable<ScreeningEntity>> GetScreenings()
     {
-        var result = await _dbContext.ScreeningEntities.ToListAsync();
+        var result = await _dbContext
+            .ScreeningEntities
+            .AsNoTracking()
+            .ToListAsync();
         return result;
     }
 }

@@ -17,6 +17,9 @@ public static class Program
             .BindConfiguration(IdentityServerOptions.ConfigurationSectionName)
             .ValidateDataAnnotations();
 
+        // Configure onboarding client & service
+        builder.ConfigureOnboardingService();
+
         builder.Services.AddDbContext<ScreeningDbContext>();
         builder.Services.AddScoped<IScreeningService, ScreeningService>();
 

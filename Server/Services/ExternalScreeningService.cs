@@ -1,10 +1,12 @@
-﻿namespace Onboarding.Server.Services
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Onboarding.Server.Services
 {
-    public record CreateScreeningRequest(string FirstName, string LastName);
-    
+    public record CreateScreeningRequest([Required] string FirstName, [Required] string LastName, [Required] Guid OnboardingId);
+
     public record CreateScreeningResponse(Guid ScreeningId, string FirstName, string LastName);
 
-    public record ScreeningResult(string? FirstName, string? LastName, bool? IsApproved);
+    public record ScreeningResult([Required] string FirstName, [Required] string LastName, bool? IsApproved);
 
     public interface IExternalScreeningService
     {

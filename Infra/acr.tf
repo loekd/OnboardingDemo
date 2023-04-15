@@ -1,11 +1,3 @@
-//role assignment for container registry
-resource "azurerm_role_assignment" "acrpull_identity_server_app" {
-  scope                = azurerm_container_registry.acr.id
-  role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.acr_pull_identity.principal_id
-}
-
-
 //container registry
 resource "azurerm_container_registry" "acr" {
   name                = "cronboarding"
@@ -44,4 +36,18 @@ resource "azurerm_private_endpoint" "private_endpoint_acr" {
     subresource_names              = ["registry"]
     is_manual_connection           = false
   }
+}
+
+//user assigned managed identity to pull container images
+resource "azurerm_user_assigned_identity" "acr_pull_identity" {
+  name                = "acr-pull-identity"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+}
+
+//role assignment for container registry
+resource "azurerm_role_assignment" "acrpull_identity_server_app" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.acr_pull_identity.principal_id
 }
