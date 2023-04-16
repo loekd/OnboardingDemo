@@ -1,6 +1,11 @@
-//main resource group
+//main resource groups
 resource "azurerm_resource_group" "rg" {
   name     = "Onboarding"
+  location = var.location
+}
+
+resource "azurerm_resource_group" "rg_screening" {
+  name     = "Screening"
   location = var.location
 }
 

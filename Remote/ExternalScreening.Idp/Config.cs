@@ -82,7 +82,7 @@ public static class Config
                 ClientClaimsPrefix = string.Empty,
                 Claims =
                 {
-                    new ClientClaim(JwtClaimTypes.Subject, "ab52009b-9c9a-4a4a-b9f5-ef146b3bc91c")
+                    new ClientClaim(JwtClaimTypes.Subject, "32e72844-fe76-4026-b685-cdc2d4e08711")
                 }
             }
         };

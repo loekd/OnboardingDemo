@@ -1,17 +1,25 @@
 //container app environment
-resource "azurerm_container_app_environment" "app_environment" {
+resource "azurerm_container_app_environment" "app_environment_onboarding" {
   name                       = "cae-onboarding"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.la.id
-  infrastructure_subnet_id   = azurerm_subnet.snet_inbound.id
+  infrastructure_subnet_id   = azurerm_subnet.snet_inbound_onboarding.id
+}
+
+resource "azurerm_container_app_environment" "app_environment_screening" {
+  name                       = "cae-screening"
+  location                   = azurerm_resource_group.rg_screening.location
+  resource_group_name        = azurerm_resource_group.rg_screening.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.la.id
+  infrastructure_subnet_id   = azurerm_subnet.snet_inbound_screening.id
 }
 
 //identity server app
 resource "azurerm_container_app" "identity_server_app" {
   name                         = "ca-identity-server"
-  container_app_environment_id = azurerm_container_app_environment.app_environment.id
-  resource_group_name          = azurerm_resource_group.rg.name
+  container_app_environment_id = azurerm_container_app_environment.app_environment_screening.id
+  resource_group_name          = azurerm_resource_group.rg_screening.name
   revision_mode                = "Single"
   identity {
     type         = "UserAssigned"
@@ -48,8 +56,8 @@ resource "azurerm_container_app" "identity_server_app" {
 //external screening api
 resource "azurerm_container_app" "screening_api_app" {
   name                         = "ca-screening-api"
-  container_app_environment_id = azurerm_container_app_environment.app_environment.id
-  resource_group_name          = azurerm_resource_group.rg.name
+  container_app_environment_id = azurerm_container_app_environment.app_environment_screening.id
+  resource_group_name          = azurerm_resource_group.rg_screening.name
   revision_mode                = "Single"
   identity {
     type         = "UserAssigned"
@@ -75,7 +83,7 @@ resource "azurerm_container_app" "screening_api_app" {
       }
       env {
         name  = "OnboardingApi__Endpoint"
-        value = "https://ca-onboarding.politewater-ba7a3a0c.westeurope.azurecontainerapps.io"
+        value = "https://ca-onboarding.delightfulbay-3cfdb872.westeurope.azurecontainerapps.io"
       }
     }
   }
@@ -98,7 +106,7 @@ resource "azurerm_container_app" "screening_api_app" {
 //onboarding app
 resource "azurerm_container_app" "onboarding_app" {
   name                         = "ca-onboarding"
-  container_app_environment_id = azurerm_container_app_environment.app_environment.id
+  container_app_environment_id = azurerm_container_app_environment.app_environment_onboarding.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
   identity {
@@ -144,6 +152,6 @@ resource "azurerm_container_app" "onboarding_app" {
 //user assigned managed identity to call onboarding api from external screening api
 resource "azurerm_user_assigned_identity" "external_screening_identity" {
   name                = "external-screening-identity"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg_screening.name
+  location            = azurerm_resource_group.rg_screening.location
 }
