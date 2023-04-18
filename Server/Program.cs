@@ -16,7 +16,7 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    builder.Services.AddDbContext<OnboardingDbContext>((
+    builder.Services.AddDbContext<OnboardingDbContext>(
         options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
 }
 builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
