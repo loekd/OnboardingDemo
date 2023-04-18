@@ -19,15 +19,15 @@ resource "azurerm_container_registry" "acr" {
 }
 
 //enable private link for container registry
-resource "azurerm_private_endpoint" "private_endpoint_acr" {
-  name                = "acr-private-endpoint"
+resource "azurerm_private_endpoint" "private_endpoint_acr_onboarding" {
+  name                = "acr-private-endpoint-onboarding"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = azurerm_subnet.snet_pe.id
+  subnet_id           = azurerm_subnet.snet_pe_onboarding.id
 
   private_dns_zone_group {
     name                 = "acr-private-endpoint_zg"
-    private_dns_zone_ids = [azurerm_private_dns_zone.private_dns_acr.id]
+    private_dns_zone_ids = [azurerm_private_dns_zone.private_dns_acr_onboarding.id]
   }
 
   private_service_connection {
@@ -38,16 +38,45 @@ resource "azurerm_private_endpoint" "private_endpoint_acr" {
   }
 }
 
-//user assigned managed identity to pull container images
-resource "azurerm_user_assigned_identity" "acr_pull_identity" {
-  name                = "acr-pull-identity"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+//enable private link for container registry
+resource "azurerm_private_endpoint" "private_endpoint_acr_screening" {
+  name                = "acr-private-endpoint-screening"
+  location            = azurerm_resource_group.rg_screening.location
+  resource_group_name = azurerm_resource_group.rg_screening.name
+  subnet_id           = azurerm_subnet.snet_pe_screening.id
+
+  private_dns_zone_group {
+    name                 = "acr-private-endpoint_zg"
+    private_dns_zone_ids = [azurerm_private_dns_zone.private_dns_acr_screening.id]
+  }
+
+  private_service_connection {
+    name                           = "pe-acr"
+    private_connection_resource_id = azurerm_container_registry.acr.id
+    subresource_names              = ["registry"]
+    is_manual_connection           = false
+  }
+}
+
+
+//role assignment for container registry
+resource "azurerm_role_assignment" "acrpull_role_onboarding_app" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.onboarding_identity.principal_id
 }
 
 //role assignment for container registry
-resource "azurerm_role_assignment" "acrpull_identity_server_app" {
+resource "azurerm_role_assignment" "acrpull_role_screening_api" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.acr_pull_identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.screening_identity.principal_id
 }
+
+//role assignment for container registry
+resource "azurerm_role_assignment" "acrpull_role_screening_idp" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.screening_idp_identity.principal_id
+}
+

@@ -7,6 +7,9 @@ services:
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ScreeningApi__Endpoint=http://screening-api
       - ScreeningApi__Authority=https://screening-idp
+      - AZURE_TENANT_ID
+      - AZURE_CLIENT_ID
+      - AZURE_CLIENT_SECRET
     ports:
       - "8080:80"
       - "8443:443"

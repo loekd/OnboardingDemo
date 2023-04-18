@@ -12,3 +12,7 @@ provider "azurerm" {
 
 provider "azuread" {
 }
+
+provider "mssql" {
+  debug = "false"
+}

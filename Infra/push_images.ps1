@@ -14,7 +14,9 @@ param (
     [ValidateSet('None','ExternalScreeningApi','ExternalScreeningIdp', 'Onboarding', 'All')]
     $PushOption = 'All',
     [switch]    
-    $DeployInfra
+    $DeployInfra,
+    [switch]    
+    $ConfigureDevelopmentEnvironmentVariables
 
 )
 
@@ -96,6 +98,27 @@ function Deploy-Terraform {
     Pop-Location
 }
 
+#sets environment variables for development
+function Set-DevelopmentEnvironmentVariables {
+    param (
+        
+    )
+    Write-Host "Setting development environment variables"
+    $env:AZURE_TENANT_ID = $(terraform output spn_tenant_id).Trim('"')
+    $env:AZURE_CLIENT_ID = $(terraform output spn_client_id).Trim('"')
+    $env:AZURE_CLIENT_SECRET = $(terraform output -json spn_client_secret).Trim('"')
+
+    [Environment]::SetEnvironmentVariable("AZURE_TENANT_ID", $env:AZURE_TENANT_ID, "User")
+    [Environment]::SetEnvironmentVariable("AZURE_CLIENT_ID", $env:AZURE_CLIENT_ID, "User")
+    [Environment]::SetEnvironmentVariable("AZURE_CLIENT_SECRET", $env:AZURE_CLIENT_SECRET, "User")
+
+    Write-Host "Restarting explorer.exe"
+    taskkill /f /im explorer.exe
+    explorer.exe
+
+    Write-Host "New variables set. Tenant:$env:AZURE_TENANT_ID, ClientId: $env:AZURE_CLIENT_ID"
+}
+
 Build-Solution -Configuration "Release" -Version $Version
 
 if ($PushOptions -ne [PushOptions]::None){
@@ -122,6 +145,10 @@ if ($PushOptions.HasFlag([PushOptions]::Onboarding)) {
 
 if ($true -eq $DeployInfra){
     Deploy-Terraform
+}
+
+if ($true -eq $ConfigureDevelopmentEnvironmentVariables){
+    Set-DevelopmentEnvironmentVariables
 }
 
 Write-Host "Done!"

@@ -11,6 +11,10 @@ terraform {
       source  = "hashicorp/azuread"
       version = "=2.8.0"
     }
+    mssql = {
+      source  = "betr-io/mssql"
+      version = "0.1.0"
+    }
   }
   backend "azurerm" {
     resource_group_name  = "OnboardingState"

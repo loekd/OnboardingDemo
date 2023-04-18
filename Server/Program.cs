@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Onboarding.Server;
 using Onboarding.Server.Services;
@@ -8,7 +9,18 @@ builder
     .ConfigureAuth()
     .ConfigureScreeningService();
 
-builder.Services.AddDbContext<OnboardingDbContext>();
+if (builder.Environment.IsDevelopment())
+{
+    Console.WriteLine("Using in-memory database on env {0}", builder.Environment.EnvironmentName);
+    builder.Services.AddDbContext<OnboardingDbContext>(
+        options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
+}
+else
+{
+    Console.WriteLine("Using Azure SQL on env {0}", builder.Environment.EnvironmentName);
+    builder.Services.AddDbContext<OnboardingDbContext>(
+        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+}
 builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
 
 builder.Services.AddControllersWithViews();

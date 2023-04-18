@@ -8,6 +8,11 @@ public class OnboardingDbContext : DbContext
 {
     public DbSet<OnboardingEntity> OnboardingEntities { get; set; }
 
+    public OnboardingDbContext(DbContextOptions<OnboardingDbContext> options)
+        :base(options)
+    {
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -18,11 +23,6 @@ public class OnboardingDbContext : DbContext
             new OnboardingEntity(Guid.Parse("{839E4D14-11C6-41CC-ABE6-20FC48D5F822}"), "Lei", "Ling", Status.NotPassed, "/media/Woman01.png", Guid.Parse("{4B2BF2E3-94D8-4338-A3DF-F38F28E50FD6}")),
             new OnboardingEntity(Guid.Parse("{9DE040AF-3CB2-48BD-A5CA-D154BE484C5A}"), "Anissa", "Pierce", Status.Skipped, "/media/Woman02.png")
         );
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseInMemoryDatabase(databaseName: "OnboardingDb");
     }
 }
 

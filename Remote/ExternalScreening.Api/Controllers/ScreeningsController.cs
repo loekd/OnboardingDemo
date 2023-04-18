@@ -26,7 +26,7 @@ public class ScreeningsController : ControllerBase
     {
         _logger.LogTrace("Adding screening");
 
-        var screening = new ScreeningEntity(request.FirstName, request.LastName, request.OnboardingId);
+        var screening = new ScreeningEntity(Guid.NewGuid(), request.FirstName, request.LastName, request.OnboardingId, null);
         await _screeningService.AddScreening(screening);
         var response = new CreateScreeningResponse(screening.Id, request.FirstName, request.LastName, request.OnboardingId);
 
