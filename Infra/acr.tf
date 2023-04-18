@@ -58,16 +58,25 @@ resource "azurerm_private_endpoint" "private_endpoint_acr_screening" {
   }
 }
 
-//user assigned managed identity to pull container images
-resource "azurerm_user_assigned_identity" "acr_pull_identity" {
-  name                = "acr-pull-identity"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+
+//role assignment for container registry
+resource "azurerm_role_assignment" "acrpull_role_onboarding_app" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.onboarding_identity.principal_id
 }
 
 //role assignment for container registry
-resource "azurerm_role_assignment" "acrpull_identity_server_app" {
+resource "azurerm_role_assignment" "acrpull_role_screening_api" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.acr_pull_identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.screening_identity.principal_id
 }
+
+//role assignment for container registry
+resource "azurerm_role_assignment" "acrpull_role_screening_idp" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.screening_idp_identity.principal_id
+}
+

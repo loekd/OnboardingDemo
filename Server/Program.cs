@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Onboarding.Server;
 using Onboarding.Server.Services;
@@ -8,7 +9,16 @@ builder
     .ConfigureAuth()
     .ConfigureScreeningService();
 
-builder.Services.AddDbContext<OnboardingDbContext>();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<OnboardingDbContext>(
+        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+}
+else
+{
+    builder.Services.AddDbContext<OnboardingDbContext>((
+        options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
+}
 builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
 
 builder.Services.AddControllersWithViews();

@@ -32,7 +32,7 @@ resource "azurerm_subnet" "snet_pe_onboarding" {
 }
 
 //subnet for outgoing traffic
-resource "azurerm_subnet" "snet_outbound-onboarding" {
+resource "azurerm_subnet" "snet_outbound_onboarding" {
     name                 = "snet-outbound-onboarding"
     address_prefixes     = [for x in local.address_prefix_onboarding : cidrsubnet(x, 5, 2)]
     virtual_network_name = azurerm_virtual_network.vnet_onboarding.name
@@ -46,6 +46,7 @@ resource "azurerm_nat_gateway" "nat_gateway" {
   resource_group_name = azurerm_resource_group.rg.name
   idle_timeout_in_minutes = 4
   sku_name = "Standard"  
+  
 }
 
 //public IP for nat gateway
@@ -61,6 +62,12 @@ resource "azurerm_public_ip" "nat_gateway_pip" {
 resource "azurerm_nat_gateway_public_ip_association" "nat_gateway_public_ip_association" {
   nat_gateway_id       = azurerm_nat_gateway.nat_gateway.id
   public_ip_address_id = azurerm_public_ip.nat_gateway_pip.id
+}
+
+//association between nat gateway and outbound subnet
+resource "azurerm_subnet_nat_gateway_association" "nat_gateway_snet_association" {
+  subnet_id      = azurerm_subnet.snet_outbound_onboarding.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway.id
 }
 
 //private dns zones for ACR
