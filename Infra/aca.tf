@@ -135,6 +135,10 @@ resource "azurerm_container_app" "onboarding_app" {
         name  = "ConnectionStrings__DefaultConnection"
         value = "Server=tcp:${azurerm_mssql_server.sql_server_onboarding.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.onboarding.name};Authentication='Active Directory Default';Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;Persist Security Info=False;"
       }
+      env {
+        name  = "AZURE_CLIENT_ID"
+        value = azurerm_user_assigned_identity.onboarding_identity.client_id
+      }
     }
   }
   ingress {

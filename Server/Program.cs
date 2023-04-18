@@ -11,13 +11,15 @@ builder
 
 if (builder.Environment.IsDevelopment())
 {
+    Console.WriteLine("Using in-memory database on env {0}", builder.Environment.EnvironmentName);
     builder.Services.AddDbContext<OnboardingDbContext>(
-        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+        options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
 }
 else
 {
+    Console.WriteLine("Using Azure SQL on env {0}", builder.Environment.EnvironmentName);
     builder.Services.AddDbContext<OnboardingDbContext>(
-        options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
+        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
 }
 builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
 
