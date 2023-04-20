@@ -35,6 +35,10 @@ resource "azurerm_container_app" "identity_server_app" {
       image  = "cronboarding.azurecr.io/externalscreeningidp:${var.identity_server_app_version}"
       cpu    = 0.25
       memory = "0.5Gi"
+      env {
+        name  = "IdentityServer__ImpersonationIdentityObjectId"
+        value = azurerm_user_assigned_identity.external_screening_identity.principal_id
+      }
     }
   }
   ingress {
@@ -83,7 +87,7 @@ resource "azurerm_container_app" "screening_api_app" {
       }
       env {
         name  = "OnboardingApi__Endpoint"
-        value = "https://ca-onboarding.delightfulbay-3cfdb872.westeurope.azurecontainerapps.io"
+        value = "https://ca-onboarding.${azurerm_container_app_environment.app_environment_onboarding.default_domain}" //chicken & egg problem
       }
     }
   }
@@ -160,8 +164,8 @@ resource "azurerm_container_app" "onboarding_app" {
 //user assigned managed identity to impersonate when calling onboarding api from external screening api
 resource "azurerm_user_assigned_identity" "external_screening_identity" {
   name                = "external-screening-identity"
-  resource_group_name = azurerm_resource_group.rg_screening.name
-  location            = azurerm_resource_group.rg_screening.location
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
 }
 
 //user assigned managed identity for onboarding api

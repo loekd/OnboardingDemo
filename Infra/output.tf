@@ -21,3 +21,16 @@ output "spn_tenant_id" {
   description = "Tenant of the subscription"
   value       = data.azurerm_subscription.current.tenant_id
 }
+
+
+output "impersonation_identity_client_id" {
+  sensitive = false
+  description = "Client ID of the managed identity used for impersonation when calling onboarding API from screening API"
+  value       = azurerm_user_assigned_identity.external_screening_identity.client_id
+}
+
+output "impersonation_identity_object_id" {
+  sensitive = false
+  description = "Object ID of the managed identity used for impersonation when calling onboarding API from screening API"
+  value       = azurerm_user_assigned_identity.external_screening_identity.principal_id
+}

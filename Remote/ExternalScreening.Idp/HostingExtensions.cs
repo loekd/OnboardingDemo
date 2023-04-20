@@ -1,4 +1,4 @@
-﻿using Duende.IdentityServer;
+﻿using ExternalScreening.Idp;
 using Microsoft.AspNetCore.HttpOverrides;
 
 namespace ExternalScreening.Api.IdSrv;
@@ -7,6 +7,12 @@ internal static class HostingExtensions
 {
     public static WebApplicationBuilder ConfigureServices(this WebApplicationBuilder builder)
     {
+        var idsrvConfig = builder.Configuration
+                            .GetRequiredSection(IdentityServerOptions.ConfigurationSectionName)
+                            .Get<IdentityServerOptions>()!;
+        Console.WriteLine($"Identity Server Config: {idsrvConfig}");
+
+
         builder.Services.AddRazorPages();
 
         //allow X-Forward headers to specify the real host and protocol of Identity Server
@@ -22,15 +28,11 @@ internal static class HostingExtensions
 
         builder.Services.AddIdentityServer(options =>
             {
-                options.AccessTokenJwtType = "JWT";
-                if (!builder.Environment.IsDevelopment())
-                {
-                    //options.IssuerUri = "https://ca-identity-server.politewater-ba7a3a0c.westeurope.azurecontainerapps.io";
-                }
+                options.AccessTokenJwtType = "JWT"; //Azure AD requires this
             })
             .AddInMemoryApiResources(Config.ApiResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.Clients);
+            .AddInMemoryClients(Config.GetClients(idsrvConfig.ImpersonationIdentityObjectId!));
 
         return builder;
     }
@@ -44,7 +46,7 @@ internal static class HostingExtensions
             //app.UseSwagger();
             //app.UseSwaggerUI();
         }
-        
+
         //app.UseHttpsRedirection();
 
         app.UseStaticFiles();

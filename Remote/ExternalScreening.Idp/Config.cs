@@ -57,8 +57,9 @@ public static class Config
             }
         };
 
-    public static IEnumerable<Client> Clients =>
-        new List<Client>
+    public static IEnumerable<Client> GetClients(string impersonationIdentityObjectId)
+    {
+        return new List<Client>
         {
             // machine-to-machine client to protect the screening api
             new Client
@@ -82,8 +83,9 @@ public static class Config
                 ClientClaimsPrefix = string.Empty,
                 Claims =
                 {
-                    new ClientClaim(JwtClaimTypes.Subject, "32e72844-fe76-4026-b685-cdc2d4e08711")
+                    new ClientClaim(JwtClaimTypes.Subject, impersonationIdentityObjectId)
                 }
             }
         };
+    }
 }
