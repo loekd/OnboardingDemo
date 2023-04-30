@@ -16,7 +16,7 @@ namespace Onboarding.Server.Services
 
         [Required]
         [StringLength(200, MinimumLength = 2)]
-        public string? ClientSecret { get; set; } = "secret";
+        public string? ClientSecret { get; set; }
 
         /// <summary>
         /// Location of Identity Server

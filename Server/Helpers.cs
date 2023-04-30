@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
@@ -11,6 +13,50 @@ namespace Onboarding.Server;
 
 public static class Helpers
 {
+    public static WebApplicationBuilder ConfigureDbContext(this WebApplicationBuilder builder)
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            Console.WriteLine("Using in-memory database on env {0}", builder.Environment.EnvironmentName);
+            builder.Services.AddDbContext<OnboardingDbContext>(
+                options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
+        }
+        else
+        {
+            Console.WriteLine("Using Azure SQL on env {0}", builder.Environment.EnvironmentName);
+            builder.Services.AddDbContext<OnboardingDbContext>(
+                options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
+        }
+        return builder;
+    }
+
+    public static WebApplicationBuilder ConfigureSecrets(this WebApplicationBuilder builder)
+    {
+        if (!builder.Environment.IsProduction())
+        {
+            return builder;
+        }
+
+        // Add services to the container.
+        builder.Services
+            .AddOptions<KeyVaultOptions>()
+            .BindConfiguration(KeyVaultOptions.ConfigurationSectionName)
+            .ValidateDataAnnotations();
+
+        var config = builder.Configuration
+            .GetRequiredSection(KeyVaultOptions.ConfigurationSectionName)
+            .Get<KeyVaultOptions>()!;
+
+        //configure keyvault with managed identity
+        builder.Configuration.AddAzureKeyVault(
+            new Uri(config.Endpoint!),
+            new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = config.ClientId!
+            }));
+        return builder;
+    }
+
     public static WebApplicationBuilder ConfigureAuth(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton<IAuthorizationHandler, RoleOrScopeHandler>();

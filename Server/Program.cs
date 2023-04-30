@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Logging;
 using Onboarding.Server;
 using Onboarding.Server.Services;
@@ -7,20 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .ConfigureAuth()
-    .ConfigureScreeningService();
+    .ConfigureScreeningService()
+    .ConfigureDbContext()
+    .ConfigureSecrets();
 
-if (builder.Environment.IsDevelopment())
-{
-    Console.WriteLine("Using in-memory database on env {0}", builder.Environment.EnvironmentName);
-    builder.Services.AddDbContext<OnboardingDbContext>(
-        options => options.UseInMemoryDatabase(databaseName: "OnboardingDb"));
-}
-else
-{
-    Console.WriteLine("Using Azure SQL on env {0}", builder.Environment.EnvironmentName);
-    builder.Services.AddDbContext<OnboardingDbContext>(
-        options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
-}
 builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
 
 builder.Services.AddControllersWithViews();
@@ -56,3 +45,4 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+

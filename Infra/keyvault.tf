@@ -15,7 +15,9 @@ resource "azurerm_key_vault" "key_vault_onboarding" {
   network_acls {
     default_action             = "Deny"
     bypass                     = "AzureServices"
-    ip_rules                   = []
+    ip_rules                   = [
+        var.acr_client_ip
+    ]
     virtual_network_subnet_ids = []
   }
   tags = {}
@@ -42,11 +44,20 @@ resource "azurerm_private_endpoint" "private_endpoint_key_vault_onboarding" {
 }
 
 //allow onboarding app to read secrets in the key vault
-resource "azurerm_role_assignment" "app_key_vault_reader" {
+resource "azurerm_role_assignment" "onboarding_key_vault_secret_reader" {
   scope                = azurerm_key_vault.key_vault_onboarding.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.onboarding_identity.principal_id
+  depends_on           = [azurerm_role_assignment.onboarding_key_vault_secret_deployer]
 }
+
+//allow current principal to manage secrets in the key vault
+resource "azurerm_role_assignment" "onboarding_key_vault_secret_deployer" {
+  scope                = azurerm_key_vault.key_vault_onboarding.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azuread_client_config.current.object_id
+}
+
 
 //DNS zone for key vault private endpoint
 resource "azurerm_private_dns_zone" "private_dns_key_vault" {
@@ -62,3 +73,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "private_link_key_vault
   virtual_network_id    = azurerm_virtual_network.vnet_onboarding.id
   registration_enabled  = false
 }
+
+//add initial screening api client secret to vault
+resource "azurerm_key_vault_secret" "screening_client_secret" {
+  name         = "ScreeningApi--ClientSecret"
+  value        = var.screening_client_secret
+  key_vault_id = azurerm_key_vault.key_vault_onboarding.id
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+

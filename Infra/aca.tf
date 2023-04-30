@@ -143,6 +143,14 @@ resource "azurerm_container_app" "onboarding_app" {
         name  = "AZURE_CLIENT_ID"
         value = azurerm_user_assigned_identity.onboarding_identity.client_id
       }
+      env {
+        name  = "KeyVault__ClientId"
+        value = azurerm_user_assigned_identity.onboarding_identity.client_id
+      }
+      env {
+        name  = "KeyVault__Endpoint"
+        value = azurerm_key_vault.key_vault_onboarding.vault_uri
+      }
     }
   }
   ingress {
