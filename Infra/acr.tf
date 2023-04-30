@@ -1,8 +1,8 @@
 //container registry
 resource "azurerm_container_registry" "acr" {
   name                = "cronboarding"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
+  location            = azurerm_resource_group.rg_onboarding.location
   sku                 = "Premium"
   admin_enabled       = false
   public_network_access_enabled = true
@@ -21,8 +21,8 @@ resource "azurerm_container_registry" "acr" {
 //enable private link for container registry
 resource "azurerm_private_endpoint" "private_endpoint_acr_onboarding" {
   name                = "acr-private-endpoint-onboarding"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg_onboarding.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
   subnet_id           = azurerm_subnet.snet_pe_onboarding.id
 
   private_dns_zone_group {

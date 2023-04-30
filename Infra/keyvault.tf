@@ -2,8 +2,8 @@
 //to store the client secret required to access the screening api from the onboarding app
 resource "azurerm_key_vault" "key_vault_onboarding" {
   name                            = "kv-onboarding-001"
-  location                        = azurerm_resource_group.rg.location
-  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg_onboarding.location
+  resource_group_name             = azurerm_resource_group.rg_onboarding.name
   enabled_for_disk_encryption     = false
   enabled_for_deployment          = false
   enable_rbac_authorization       = true
@@ -24,8 +24,8 @@ resource "azurerm_key_vault" "key_vault_onboarding" {
 //private endpoint for key vault
 resource "azurerm_private_endpoint" "private_endpoint_key_vault_onboarding" {
   name                = "kv-private-endpoint-onboarding"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg_onboarding.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
   subnet_id           = azurerm_subnet.snet_pe_onboarding.id
 
   private_dns_zone_group {
@@ -51,13 +51,13 @@ resource "azurerm_role_assignment" "app_key_vault_reader" {
 //DNS zone for key vault private endpoint
 resource "azurerm_private_dns_zone" "private_dns_key_vault" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
 }
 
 //connect the DNS zone to the vnet
 resource "azurerm_private_dns_zone_virtual_network_link" "private_link_key_vault_dns" {
   name                  = "private_link_key_vault_dns"
-  resource_group_name   = azurerm_resource_group.rg.name
+  resource_group_name   = azurerm_resource_group.rg_onboarding.name
   private_dns_zone_name = azurerm_private_dns_zone.private_dns_key_vault.name
   virtual_network_id    = azurerm_virtual_network.vnet_onboarding.id
   registration_enabled  = false

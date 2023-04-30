@@ -15,8 +15,8 @@ resource "random_password" "screening_password" {
 
 resource "azurerm_mssql_server" "sql_server_onboarding" {
   name                              = "sql-onboarding-demo-001"
-  resource_group_name               = azurerm_resource_group.rg.name
-  location                          = azurerm_resource_group.rg.location
+  resource_group_name               = azurerm_resource_group.rg_onboarding.name
+  location                          = azurerm_resource_group.rg_onboarding.location
   version                           = "12.0"
   administrator_login               = "azureadmin"
   administrator_login_password      = random_password.onboarding_password.result
@@ -46,8 +46,8 @@ resource "azurerm_mssql_database" "onboarding" {
 
 resource "azurerm_private_endpoint" "pe_sql_onboarding" {
   name                = "pe-onboarding"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg_onboarding.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
   subnet_id           = azurerm_subnet.snet_pe_onboarding.id
 
   private_dns_zone_group {
@@ -65,12 +65,12 @@ resource "azurerm_private_endpoint" "pe_sql_onboarding" {
 
 resource "azurerm_private_dns_zone" "private_dns_sql_onboarding" {
   name                = "privatelink.database.windows.net"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "link__private_dns_sql_onboarding" {
   name                  = "vnetlink_onboarding"
-  resource_group_name   = azurerm_resource_group.rg.name
+  resource_group_name   = azurerm_resource_group.rg_onboarding.name
   private_dns_zone_name = azurerm_private_dns_zone.private_dns_sql_onboarding.name
   virtual_network_id    = azurerm_virtual_network.vnet_onboarding.id
 }

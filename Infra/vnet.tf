@@ -6,8 +6,8 @@ locals {
 //private virtual network
 resource "azurerm_virtual_network" "vnet_onboarding" {
   name                = "vnet-onboarding"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg_onboarding.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
   address_space       = local.address_prefix_onboarding
 }
 
@@ -16,7 +16,7 @@ resource "azurerm_subnet" "snet_inbound_onboarding" {
 name                                               = "snet-inbound-onboarding"
     address_prefixes                               = [for x in local.address_prefix_onboarding : cidrsubnet(x, 5, 0)]
     virtual_network_name                           = azurerm_virtual_network.vnet_onboarding.name
-    resource_group_name                            = azurerm_resource_group.rg.name
+    resource_group_name                            = azurerm_resource_group.rg_onboarding.name
     private_endpoint_network_policies_enabled      = true
     private_link_service_network_policies_enabled  = true
 }
@@ -26,7 +26,7 @@ resource "azurerm_subnet" "snet_pe_onboarding" {
     name                                           = "snet-private-endpoints-onboarding"
     address_prefixes                               = [for x in local.address_prefix_onboarding : cidrsubnet(x, 5, 1)]
     virtual_network_name                           = azurerm_virtual_network.vnet_onboarding.name
-    resource_group_name                            = azurerm_resource_group.rg.name
+    resource_group_name                            = azurerm_resource_group.rg_onboarding.name
     private_endpoint_network_policies_enabled      = true
     private_link_service_network_policies_enabled  = true
 }
@@ -36,14 +36,14 @@ resource "azurerm_subnet" "snet_outbound_onboarding" {
     name                 = "snet-outbound-onboarding"
     address_prefixes     = [for x in local.address_prefix_onboarding : cidrsubnet(x, 5, 2)]
     virtual_network_name = azurerm_virtual_network.vnet_onboarding.name
-    resource_group_name  = azurerm_resource_group.rg.name
+    resource_group_name  = azurerm_resource_group.rg_onboarding.name
 }
 
 //nat gateway for outbound traffic
 resource "azurerm_nat_gateway" "nat_gateway" {
   name                = "ng-onboarding"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg_onboarding.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
   idle_timeout_in_minutes = 4
   sku_name = "Standard"  
   
@@ -52,8 +52,8 @@ resource "azurerm_nat_gateway" "nat_gateway" {
 //public IP for nat gateway
 resource "azurerm_public_ip" "nat_gateway_pip" {
   name                = "pip-nat-gateway"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg_onboarding.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
@@ -73,13 +73,13 @@ resource "azurerm_subnet_nat_gateway_association" "nat_gateway_snet_association"
 //private dns zones for ACR
 resource "azurerm_private_dns_zone" "private_dns_acr_onboarding" {
   name                = "privatelink.azurecr.io"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
 }
 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "private_link_acr_dns_onboarding" {
   name                  = "private_link_acr_dns_onboarding"
-  resource_group_name   = azurerm_resource_group.rg.name
+  resource_group_name   = azurerm_resource_group.rg_onboarding.name
   private_dns_zone_name = azurerm_private_dns_zone.private_dns_acr_onboarding.name
   virtual_network_id    = azurerm_virtual_network.vnet_onboarding.id
   registration_enabled  = false

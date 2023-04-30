@@ -1,8 +1,8 @@
 //container app environment
 resource "azurerm_container_app_environment" "app_environment_onboarding" {
   name                       = "cae-onboarding"
-  location                   = azurerm_resource_group.rg.location
-  resource_group_name        = azurerm_resource_group.rg.name
+  location                   = azurerm_resource_group.rg_onboarding.location
+  resource_group_name        = azurerm_resource_group.rg_onboarding.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.la.id
   infrastructure_subnet_id   = azurerm_subnet.snet_inbound_onboarding.id
 }
@@ -111,7 +111,7 @@ resource "azurerm_container_app" "screening_api_app" {
 resource "azurerm_container_app" "onboarding_app" {
   name                         = "ca-onboarding"
   container_app_environment_id = azurerm_container_app_environment.app_environment_onboarding.id
-  resource_group_name          = azurerm_resource_group.rg.name
+  resource_group_name          = azurerm_resource_group.rg_onboarding.name
   revision_mode                = "Single"
   identity {
     type         = "UserAssigned"
@@ -164,15 +164,15 @@ resource "azurerm_container_app" "onboarding_app" {
 //user assigned managed identity to impersonate when calling onboarding api from external screening api
 resource "azurerm_user_assigned_identity" "external_screening_identity" {
   name                = "external-screening-identity"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
+  location            = azurerm_resource_group.rg_onboarding.location
 }
 
 //user assigned managed identity for onboarding api
 resource "azurerm_user_assigned_identity" "onboarding_identity" {
   name                = "onboarding-identity"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg_onboarding.name
+  location            = azurerm_resource_group.rg_onboarding.location
 }
 
 //user assigned managed identity for screening api
