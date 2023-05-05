@@ -11,12 +11,14 @@ namespace Onboarding.Server.Controllers
     {
         private readonly IOnboardingDataService _onboardingService;
         private readonly IExternalScreeningService _screeningService;
+        private readonly IAzureAdManagementService _azureAdManagementService;
         private readonly ILogger<OnboardingsController> _logger;
 
-        public OnboardingsController(IOnboardingDataService onboardingService, IExternalScreeningService screeningService, ILogger<OnboardingsController> logger)
+        public OnboardingsController(IOnboardingDataService onboardingService, IExternalScreeningService screeningService, IAzureAdManagementService azureAdManagementService, ILogger<OnboardingsController> logger)
         {
             _onboardingService = onboardingService ?? throw new ArgumentNullException(nameof(onboardingService));
             _screeningService = screeningService ?? throw new ArgumentNullException(nameof(screeningService));
+            _azureAdManagementService = azureAdManagementService ?? throw new ArgumentNullException(nameof(azureAdManagementService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -36,16 +38,22 @@ namespace Onboarding.Server.Controllers
         }
 
         /// <summary>
-        /// Creates a new onboarding. Can be called by machines and humans.
+        /// Creates a new onboarding. Can be called by humans.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [Authorize(policy: "ReadWriteAccessPolicy")]
+        [Authorize(policy: "ReadWriteScopeAccessPolicy")]
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody]CreateOnboardingModel input)
         {
             input.Id = Guid.NewGuid();
 
+            //create user account in AAD
+            _logger.LogTrace("Creating user account for {FirstName}.", input.FirstName);
+
+            await _azureAdManagementService.CreateUser(input.FirstName, input.LastName);
+
+            //request screening if needed
             if (input.RequestExternalScreening)
             {
                 _logger.LogTrace("Requesting screening for Onboarding {OnboardingId} with screening.", input.Id);
@@ -64,6 +72,27 @@ namespace Onboarding.Server.Controllers
             }
             
             return Ok(input);
+        }
+
+        /// <summary>
+        /// Deletes an existing onboarding. Can be called by machines and humans.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        [Authorize(policy: "ReadWriteScopeAccessPolicy")]
+        [HttpDelete("{onboardingId:guid}")]
+        public async Task<IActionResult> DeleteAsync([FromRoute] Guid onboardingId)
+        {
+            _logger.LogTrace("Deleting onboarding {OnboardingId}.", onboardingId);
+
+            var existing = await _onboardingService.GetOnboarding(onboardingId);
+            if (existing is null)
+            {
+                return NotFound();
+            }
+
+            await _onboardingService.DeleteOnboarding(existing);
+            return NoContent();
         }
 
         /// <summary>

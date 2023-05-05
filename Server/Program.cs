@@ -8,7 +8,8 @@ builder
     .ConfigureAuth()
     .ConfigureScreeningService()
     .ConfigureDbContext()
-    .ConfigureSecrets();
+    .ConfigureSecrets()
+    .ConfigureAadService();
 
 builder.Services.AddScoped<IOnboardingDataService, OnboardingDataService>();
 

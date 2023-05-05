@@ -39,6 +39,10 @@ resource "azurerm_container_app" "identity_server_app" {
         name  = "IdentityServer__ImpersonationIdentityObjectId"
         value = azurerm_user_assigned_identity.external_screening_identity.principal_id
       }
+      env {
+        name  = "IdentityServer__ClientSecret"
+        value = var.screening_client_secret
+      }
     }
   }
   ingress {
@@ -136,6 +140,10 @@ resource "azurerm_container_app" "onboarding_app" {
         value = "https://${azurerm_container_app.identity_server_app.ingress.0.fqdn}"
       }
       env {
+        name  = "ScreeningApi__ClientSecret"
+        value = var.screening_client_secret
+      }
+      env {
         name  = "ConnectionStrings__DefaultConnection"
         value = "Server=tcp:${azurerm_mssql_server.sql_server_onboarding.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.onboarding.name};Authentication='Active Directory Default';Encrypt=True;TrustServerCertificate=False;Connection Timeout=60;Persist Security Info=False;"
       }
@@ -181,6 +189,13 @@ resource "azurerm_user_assigned_identity" "onboarding_identity" {
   name                = "onboarding-identity"
   resource_group_name = azurerm_resource_group.rg_onboarding.name
   location            = azurerm_resource_group.rg_onboarding.location
+}
+
+//azure ad user management rights for onboarding identity
+resource "azuread_app_role_assignment" "onboarding_user_readwrite_all" {
+  app_role_id         = azuread_service_principal.msgraph.app_role_ids["User.ReadWrite.All"]
+  principal_object_id = azurerm_user_assigned_identity.onboarding_identity.principal_id
+  resource_object_id  = azuread_service_principal.msgraph.object_id
 }
 
 //user assigned managed identity for screening api
