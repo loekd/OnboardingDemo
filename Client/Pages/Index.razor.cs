@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using MudBlazor;
 using Onboarding.Client.Shared;
+using Onboarding.Shared;
 
 namespace Onboarding.Client.Pages;
 
@@ -93,5 +94,14 @@ public class IndexModel : Component<Onboarding.Shared.OnboardingModel>
     protected Task RefreshData()
     {
         return LoadData();
+    }
+
+    protected void SelectedItemDeleted(OnboardingModel model)
+    {
+        if (model is not null
+            && Items.Contains(model))
+        { 
+            Items.Remove(model);
+        }
     }
 }

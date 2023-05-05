@@ -57,6 +57,9 @@ namespace Onboarding.Client.Shared
     /// </summary>
     public abstract class DialogComponent<T> : Component<T>
     {
+        [Parameter]
+        public EventCallback<T> OnNotifyParentItemDeleted { get; set; }
+
         [CascadingParameter]
         public MudDialogInstance? MudDialog { get; set; }
 
@@ -87,6 +90,26 @@ namespace Onboarding.Client.Shared
         {
             MudDialog!.Close(DialogResult.Ok(SelectedItem));
             return Task.CompletedTask;
+        }
+
+        protected async Task Delete()
+        { 
+            if (SelectedItem is null) return;
+            await DeleteImpl();
+            await OnNotifyParentItemDeleted.InvokeAsync(SelectedItem);
+        }
+
+        protected abstract Task DeleteImpl();
+
+    }
+
+    public class EventArgs<T> : EventArgs
+    {
+        public T Value { get; init; }
+
+        public EventArgs(T value)
+        {
+            Value = value;
         }
     }
 }

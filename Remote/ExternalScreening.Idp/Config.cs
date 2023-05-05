@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
+using ExternalScreening.Idp;
 using IdentityModel;
 using Microsoft.AspNetCore.DataProtection;
 using Secret = Duende.IdentityServer.Models.Secret;
@@ -57,7 +58,7 @@ public static class Config
             }
         };
 
-    public static IEnumerable<Client> GetClients(string impersonationIdentityObjectId)
+    public static IEnumerable<Client> GetClients(IdentityServerOptions config)
     {
         return new List<Client>
         {
@@ -65,7 +66,7 @@ public static class Config
             new Client
             {
                 ClientId = "screeningapi",
-                ClientSecrets = { new Secret("secret".Sha256()) },
+                ClientSecrets = { new Secret(config.ClientSecret.Sha256()) },
 
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 // scopes that client has access to
@@ -75,7 +76,7 @@ public static class Config
             new Client
             {
                 ClientId = "onboardingapi",
-                ClientSecrets = { new Secret("secret".Sha256()) },
+                ClientSecrets = { new Secret(config.ClientSecret.Sha256()) },
 
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 // scopes that client has access to
@@ -83,7 +84,7 @@ public static class Config
                 ClientClaimsPrefix = string.Empty,
                 Claims =
                 {
-                    new ClientClaim(JwtClaimTypes.Subject, impersonationIdentityObjectId)
+                    new ClientClaim(JwtClaimTypes.Subject, config.ImpersonationIdentityObjectId)
                 }
             }
         };

@@ -84,6 +84,9 @@ resource "azuread_service_principal" "msgraph" {
 resource "azuread_application" "onboarding_admin_app" {
   display_name = "OnboardingAdmin"
   owners       = [data.azuread_client_config.current.object_id]
+  lifecycle {
+    ignore_changes = [ required_resource_access ]
+  }
 }
 
 resource "azuread_app_role_assignment" "onboarding_user_read_all" {

@@ -15,9 +15,16 @@ namespace ExternalScreening.Idp
         [StringLength(128, MinimumLength = 20)]
         public string? ImpersonationIdentityObjectId { get; set; }
 
+
+        /// <summary>
+        /// Client Secret to use with the client_credentials flow.
+        /// </summary>
+        [StringLength(128, MinimumLength = 20)]
+        public string? ClientSecret { get; set; }
+
         public override string ToString()
         {
-            return $"ImpersonationIdentityObjectId: {ImpersonationIdentityObjectId}";
+            return $"ImpersonationIdentityObjectId: {ImpersonationIdentityObjectId} - Client Secret: {ClientSecret}";
         }
     }
 }

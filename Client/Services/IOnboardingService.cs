@@ -1,5 +1,6 @@
 ﻿using Onboarding.Shared;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Text;
 
 namespace Onboarding.Client.Services;
@@ -18,6 +19,13 @@ public interface IOnboardingService
     /// <param name="model"></param>
     /// <returns></returns>
     Task Add(CreateOnboardingModel model);
+
+    /// <summary>
+    /// Removes onboarding by id
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns></returns>
+    Task Delete(OnboardingModel model);
 
 }
 
@@ -57,5 +65,10 @@ public class OnboardingService : IOnboardingService
         return Task.FromResult(response);
     }
 
-
+    public async Task Delete(OnboardingModel onboarding)
+    {
+        _logger.LogDebug("Deleting onboarding data");
+        var result = await _httpClient.DeleteAsync($"{_apiEndpoint}/{onboarding.Id:d}");
+        result.EnsureSuccessStatusCode();
+    }
 }

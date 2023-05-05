@@ -1,9 +1,13 @@
-﻿using Azure.Identity;
+﻿using Azure.Core;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Microsoft.Graph.Authentication;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.Identity.Web;
 using Onboarding.Server.Services;
 using Polly;
@@ -13,6 +17,11 @@ namespace Onboarding.Server;
 
 public static class Helpers
 {
+    /// <summary>
+    /// Configures a DbContext based on the environment.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
     public static WebApplicationBuilder ConfigureDbContext(this WebApplicationBuilder builder)
     {
         if (builder.Environment.IsDevelopment())
@@ -30,6 +39,11 @@ public static class Helpers
         return builder;
     }
 
+    /// <summary>
+    /// Configures Azure KeyVault for production environments.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
     public static WebApplicationBuilder ConfigureSecrets(this WebApplicationBuilder builder)
     {
         if (!builder.Environment.IsProduction())
@@ -57,6 +71,11 @@ public static class Helpers
         return builder;
     }
 
+    /// <summary>
+    /// Configures Azure AD authentication for the API.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
     public static WebApplicationBuilder ConfigureAuth(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton<IAuthorizationHandler, RoleOrScopeHandler>();
@@ -72,6 +91,12 @@ public static class Helpers
             {
                 policy.RequireAuthenticatedUser();
                 policy.Requirements.Add(new RoleOrScopeRequirement("Onboarding.ReadWriteRole", "Onboarding.ReadWrite"));
+            });
+
+            options.AddPolicy("ReadWriteScopeAccessPolicy", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireScope("Onboarding.ReadWrite");
             });
         });
 
@@ -95,12 +120,24 @@ public static class Helpers
             {
                 await existingOnTokenValidatedHandler(context);
             };
+
+            var existingOnForbiddenHandler = options.Events.OnForbidden;
+            options.Events.OnForbidden = async context =>
+            {
+                await existingOnForbiddenHandler(context);
+            };
         });
 
 
         return builder;
     }
 
+    /// <summary>
+    /// Configures an HttpClient for the Screening API, to request screenings.
+    /// Configures an HttpClient for the Screening IDP, to get tokens using the client credentials flow.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
     public static WebApplicationBuilder ConfigureScreeningService(this WebApplicationBuilder builder)
     {
         // Add services to the container.
@@ -126,6 +163,28 @@ public static class Helpers
             return new ExternalScreeningService(client, logger);
         });
 
+        return builder;
+    }
+
+    /// <summary>
+    /// Configures a service to talk to Azure AD and manage user accounts.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    public static WebApplicationBuilder ConfigureAadService(this WebApplicationBuilder builder)
+    {
+        //steal kv config, to get managed identity client id
+        var config = builder.Configuration
+            .GetRequiredSection(KeyVaultOptions.ConfigurationSectionName)
+            .Get<KeyVaultOptions>()!;
+
+        string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
+        var graphClient = new GraphServiceClient(new AzureIdentityAuthenticationProvider(new DefaultAzureCredential(new DefaultAzureCredentialOptions
+        {
+            ManagedIdentityClientId = config.ClientId!
+        }), scopes: scopes));
+        builder.Services.AddScoped(sp => graphClient);
+        builder.Services.AddScoped<IAzureAdManagementService, AzureAdManagementService>();
         return builder;
     }
 
@@ -187,6 +246,9 @@ public static class Helpers
     }
 }
 
+/// <summary>
+/// Requirement for either app role or scope
+/// </summary>
 public class RoleOrScopeRequirement : IAuthorizationRequirement
 {
     public string Role { get; }
@@ -199,6 +261,9 @@ public class RoleOrScopeRequirement : IAuthorizationRequirement
     }
 }
 
+/// <summary>
+/// Authorization handler for either app role or scope
+/// </summary>
 public class RoleOrScopeHandler : AuthorizationHandler<RoleOrScopeRequirement>
 {
     private const string ScopeClaimType = "http://schemas.microsoft.com/identity/claims/scope";
@@ -218,7 +283,14 @@ public class RoleOrScopeHandler : AuthorizationHandler<RoleOrScopeRequirement>
 
 internal static class PolicyBuilder
 {
-    public static Polly.IAsyncPolicy<HttpResponseMessage> GetRetryPolicy<TService>(IServiceProvider serviceProvider,
+    /// <summary>
+    /// Configures a retry policy for HTTP requests
+    /// </summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <param name="serviceProvider"></param>
+    /// <param name="retryCount"></param>
+    /// <returns></returns>
+    public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy<TService>(IServiceProvider serviceProvider,
         int retryCount = 1)
         where TService : class
     {

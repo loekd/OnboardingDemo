@@ -32,7 +32,7 @@ internal static class HostingExtensions
             })
             .AddInMemoryApiResources(Config.ApiResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
-            .AddInMemoryClients(Config.GetClients(idsrvConfig.ImpersonationIdentityObjectId!));
+            .AddInMemoryClients(Config.GetClients(idsrvConfig!));
 
         return builder;
     }

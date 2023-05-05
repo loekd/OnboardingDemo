@@ -79,8 +79,8 @@ resource "azurerm_key_vault_secret" "screening_client_secret" {
   name         = "ScreeningApi--ClientSecret"
   value        = var.screening_client_secret
   key_vault_id = azurerm_key_vault.key_vault_onboarding.id
-  lifecycle {
-    ignore_changes = [value]
-  }
+#   lifecycle {
+#     ignore_changes = [value]
+#   }
 }
 

@@ -18,5 +18,11 @@ namespace Onboarding.Client.Shared
 
             return base.OnInitializedAsync();
         }
+
+        protected override Task DeleteImpl()
+        {
+            if (SelectedItem is null) return Task.CompletedTask;
+            return OnboardingService!.Delete(SelectedItem);
+        }
     }
 }

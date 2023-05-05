@@ -36,7 +36,7 @@ public class OnboardingApiOptions
     /// </summary>
     [Required]
     [StringLength(200, MinimumLength = 2)]
-    public string? IdentityServerClientSecret { get; set; } = "secret";
+    public string? IdentityServerClientSecret { get; set; }
 
     /// <summary>
     /// The scope requested to access the onboarding API
@@ -59,6 +59,6 @@ public class OnboardingApiOptions
 
     public override string ToString()
     {
-        return $"IdSrvEndpoint: {Endpoint} - IdSrvClientId: {IdentityServerClientId} - IdSrvScp: {IdentityServerRequestedReadWriteScope} - AadAuthority: {AzureAdAuthority} - AadClientId: {AzureAdClientId} - AadScp: {AzureAdRequestedScope}";
+        return $"IdSrvEndpoint: {Endpoint} - IdSrvClientId: {IdentityServerClientId} - IdSrvClientSecret:{IdentityServerClientSecret} - IdSrvScp: {IdentityServerRequestedReadWriteScope} - AadAuthority: {AzureAdAuthority} - AadClientId: {AzureAdClientId} - AadScp: {AzureAdRequestedScope}";
     }
 }
