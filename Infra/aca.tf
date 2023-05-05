@@ -93,6 +93,10 @@ resource "azurerm_container_app" "screening_api_app" {
         name  = "OnboardingApi__Endpoint"
         value = "https://ca-onboarding.${azurerm_container_app_environment.app_environment_onboarding.default_domain}" //chicken & egg problem
       }
+      env {
+        name  = "OnboardingApi__IdentityServerClientSecret"
+        value = var.screening_client_secret
+      }
     }
   }
   ingress {

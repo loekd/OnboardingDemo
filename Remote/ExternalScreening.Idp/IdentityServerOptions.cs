@@ -24,7 +24,7 @@ namespace ExternalScreening.Idp
 
         public override string ToString()
         {
-            return $"ImpersonationIdentityObjectId: {ImpersonationIdentityObjectId}";
+            return $"ImpersonationIdentityObjectId: {ImpersonationIdentityObjectId} - Client Secret: {ClientSecret}";
         }
     }
 }

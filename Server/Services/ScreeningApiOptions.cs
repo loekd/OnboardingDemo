@@ -32,7 +32,7 @@ namespace Onboarding.Server.Services
 
         public override string ToString()
         {
-            return $"Endpoint: {Endpoint} - ClientId: {ClientId} - Auth: {Authority} - Scp: {RequestedReadWriteScope}";
+            return $"Endpoint: {Endpoint} - ClientId: {ClientId} - ClientSecret:{ClientSecret} - Auth: {Authority} - Scp: {RequestedReadWriteScope}";
         }
     }
 }
