@@ -18,5 +18,10 @@ namespace Onboarding.Client.Shared
 
             return base.OnInitializedAsync();
         }
+
+        protected override Task DeleteImpl()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

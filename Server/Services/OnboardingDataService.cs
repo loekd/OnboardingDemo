@@ -6,6 +6,7 @@ namespace Onboarding.Server.Services;
 public interface IOnboardingDataService
 {
     Task AddOnboarding(OnboardingEntity Onboarding);
+    Task DeleteOnboarding(OnboardingEntity onboarding);
     ValueTask<OnboardingEntity?> GetOnboarding(Guid id);
     Task<IEnumerable<OnboardingEntity>> GetOnboardings();
     Task UpdateOnboardingStatus(Guid id, bool? isApproved);
@@ -59,7 +60,17 @@ public class OnboardingDataService : IOnboardingDataService
 
     public async Task<IEnumerable<OnboardingEntity>> GetOnboardings()
     {
+        _logger.LogTrace("Fetching Onboardings");
+
         var query = await _dbContext.OnboardingEntities.ToListAsync();
         return query;
+    }
+
+    public Task DeleteOnboarding(OnboardingEntity onboarding)
+    {
+        _logger.LogTrace("Removing Onboarding {Id}", onboarding.Id);
+
+        _dbContext.OnboardingEntities.Remove(onboarding);
+        return _dbContext.SaveChangesAsync();
     }
 }

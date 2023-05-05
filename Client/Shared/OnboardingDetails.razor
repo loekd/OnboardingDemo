@@ -52,6 +52,12 @@
             <MudText Label="Screening Id" Variant="Variant.Text">@SelectedItem!.ExternalScreeningId</MudText>
         </MudField>
 
+        <MudField Label="Id:" Variant="Variant.Text">
+            <MudText Label="Id" Variant="Variant.Text">@SelectedItem!.Id</MudText>
+        </MudField>
     </MudCardContent>
+    <MudCardActions>
+        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Primary" Size="Size.Small" OnClick="Delete" >Delete</MudButton>
+    </MudCardActions>
 
 </MudCard>
