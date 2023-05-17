@@ -7,9 +7,9 @@ public interface IOnboardingDataService
 {
     Task AddOnboarding(OnboardingEntity Onboarding);
     Task DeleteOnboarding(OnboardingEntity onboarding);
-    ValueTask<OnboardingEntity?> GetOnboarding(Guid id);
+    Task<OnboardingEntity?> GetOnboarding(Guid id);
     Task<IEnumerable<OnboardingEntity>> GetOnboardings();
-    Task UpdateOnboardingStatus(Guid id, bool? isApproved);
+    Task UpdateOnboarding(OnboardingEntity onboarding);
 }
 
 public class OnboardingDataService : IOnboardingDataService
@@ -25,28 +25,25 @@ public class OnboardingDataService : IOnboardingDataService
         dbContext.Database.EnsureCreated();
     }
 
-    public ValueTask<OnboardingEntity?> GetOnboarding(Guid id)
+    public Task<OnboardingEntity?> GetOnboarding(Guid id)
     {
-        return _dbContext.OnboardingEntities.FindAsync(id);
+        return _dbContext
+            .OnboardingEntities
+            .AsNoTracking()
+            .Where(o => o.Id == id)
+            .SingleOrDefaultAsync();
     }
 
-    public Task UpdateOnboardingStatus(Guid id, bool? isApproved)
+    public async Task UpdateOnboarding(OnboardingEntity onboarding)
     {
-        _logger.LogTrace("Updating Onboarding {Id} to {Status}", id, isApproved);
+        _logger.LogTrace("Updating Onboarding {Id} to {Status}", onboarding.Id, onboarding.Status);
 
-        var existing = _dbContext.OnboardingEntities.Single(s => s.Id == id);
-        if (isApproved.HasValue && isApproved.Value)
-        {
-            existing.Status = Shared.Status.Passed;
-        }
-        else if (isApproved.HasValue && !isApproved.Value)
-        {
-            existing.Status = Shared.Status.NotPassed;
-        }
-        else
-            existing.Status = Shared.Status.Pending;
+        var existing = await GetOnboarding(onboarding.Id) ?? throw new InvalidOperationException($"Failed to find Onboarding with Id {onboarding.Id}.");
+        existing.Status = onboarding.Status;
+        existing.ExternalScreeningId = onboarding.ExternalScreeningId;
+        existing.AzureAdAccountId = onboarding.AzureAdAccountId;
 
-        return _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync();
     }
 
     public Task AddOnboarding(OnboardingEntity Onboarding)
@@ -62,7 +59,10 @@ public class OnboardingDataService : IOnboardingDataService
     {
         _logger.LogTrace("Fetching Onboardings");
 
-        var query = await _dbContext.OnboardingEntities.ToListAsync();
+        var query = await _dbContext
+            .OnboardingEntities
+            .AsNoTracking()
+            .ToListAsync();
         return query;
     }
 

@@ -11,7 +11,7 @@ public enum Status
     NotPassed = 4
 }
 
-public record OnboardingModel(Guid Id, string FirstName, string LastName, Status Status, string? ImageUrl = null, Guid? ExternalScreeningId = null);
+public record OnboardingModel(Guid Id, string FirstName, string LastName, Status Status, string? ImageUrl = null, Guid? ExternalScreeningId = null, string? AzureAdAccountId = null);
 
 public class CreateOnboardingModel
 {
