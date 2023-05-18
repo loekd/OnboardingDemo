@@ -132,6 +132,7 @@ namespace Onboarding.Server.Controllers
                     //delete user if it exists
                     _logger.LogTrace("Deleting user account for {FirstName}. Screening result negative.", input.FirstName);
                     await _azureAdManagementService.DeleteUser(input.FirstName, input.LastName);
+                    onboarding.AzureAdAccountId = null;
                 }
             }
             else
