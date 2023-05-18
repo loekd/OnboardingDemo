@@ -38,7 +38,7 @@ public class OnboardingDataService : IOnboardingDataService
     {
         _logger.LogTrace("Updating Onboarding {Id} to {Status}", onboarding.Id, onboarding.Status);
 
-        var existing = await GetOnboarding(onboarding.Id) ?? throw new InvalidOperationException($"Failed to find Onboarding with Id {onboarding.Id}.");
+        var existing = (await _dbContext.OnboardingEntities.FindAsync(onboarding.Id)) ?? throw new InvalidOperationException($"Failed to find Onboarding with Id {onboarding.Id}.");
         existing.Status = onboarding.Status;
         existing.ExternalScreeningId = onboarding.ExternalScreeningId;
         existing.AzureAdAccountId = onboarding.AzureAdAccountId;
