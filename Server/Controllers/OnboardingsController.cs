@@ -33,8 +33,8 @@ namespace Onboarding.Server.Controllers
             _logger.LogTrace("Fetching all onboardings.");
 
             var all = await _onboardingService.GetOnboardings();
-                
-            return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status, o.ImageUrl, o.ExternalScreeningId)));
+
+            return Ok(all.Select(o => new OnboardingModel(o.Id, o.FirstName!, o.LastName!, o.Status, o.ImageUrl, o.ExternalScreeningId, o.AzureAdAccountId)));
         }
 
         /// <summary>
@@ -44,14 +44,9 @@ namespace Onboarding.Server.Controllers
         /// <returns></returns>
         [Authorize(policy: "ReadWriteScopeAccessPolicy")]
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody]CreateOnboardingModel input)
+        public async Task<IActionResult> PostAsync([FromBody] CreateOnboardingModel input)
         {
             input.Id = Guid.NewGuid();
-
-            //create user account in AAD
-            _logger.LogTrace("Creating user account for {FirstName}.", input.FirstName);
-
-            await _azureAdManagementService.CreateUser(input.FirstName, input.LastName);
 
             //request screening if needed
             if (input.RequestExternalScreening)
@@ -70,7 +65,7 @@ namespace Onboarding.Server.Controllers
                 //store locally
                 await _onboardingService.AddOnboarding(new OnboardingEntity(input.Id, input.FirstName, input.LastName, Status.Skipped, "media/Woman03.png"));
             }
-            
+
             return Ok(input);
         }
 
@@ -119,8 +114,34 @@ namespace Onboarding.Server.Controllers
                 return NotFound();
             }
 
+            if (input.IsApproved.HasValue)
+            {
+                if (input.IsApproved.Value)
+                {
+                    onboarding.Status = Status.Passed;
+
+                    //create user account in AAD when screening result is positive
+                    _logger.LogTrace("Creating user account for {FirstName}. Screening result positive.", input.FirstName);
+                    var aadUser = await _azureAdManagementService.CreateUser(input.FirstName, input.LastName);
+                    onboarding.AzureAdAccountId = aadUser.Id;
+                }
+                else
+                {
+                    onboarding.Status = Status.NotPassed;
+
+                    //delete user if it exists
+                    _logger.LogTrace("Deleting user account for {FirstName}. Screening result negative.", input.FirstName);
+                    await _azureAdManagementService.DeleteUser(input.FirstName, input.LastName);
+                    onboarding.AzureAdAccountId = null;
+                }
+            }
+            else
+            {
+                onboarding.Status = Status.Pending;
+            }
+
             //store locally
-            await _onboardingService.UpdateOnboardingStatus(onboardingId, input.IsApproved);
+            await _onboardingService.UpdateOnboarding(onboarding);
 
             return Ok(input);
         }

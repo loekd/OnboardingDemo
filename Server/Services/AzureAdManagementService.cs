@@ -7,6 +7,7 @@ namespace Onboarding.Server.Services;
 public interface IAzureAdManagementService
 {
     Task<AadUser> CreateUser(string firstName, string lastName);
+    Task DeleteUser(string firstName, string lastName);
     Task<AadUser?> FindUser(string firstName, string lastName);
 }
 
@@ -86,6 +87,28 @@ public class AzureAdManagementService : IAzureAdManagementService
         }
 
         return user;
+    }
+
+    public async Task DeleteUser(string firstName, string lastName)
+    {
+        // check for existing user with the same name
+        var user = await FindUser(firstName, lastName);
+
+        if (user != null)
+        {
+            _logger.LogTrace("Deleting user {FirstName} with Id {Id}.", firstName, user.Id);
+
+            try
+            {
+                await _graphServiceClient
+                    .Users[user.Id]
+                    .DeleteAsync();
+            }
+            catch (ODataError ex)
+            {
+                throw new InvalidOperationException("Failed to communicate to Azure AD", ex);
+            }
+        }
     }
 }
 

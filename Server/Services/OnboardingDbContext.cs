@@ -59,4 +59,6 @@ public class OnboardingEntity
     public string? ImageUrl { get; set; }
 
     public Guid? ExternalScreeningId { get; set; }
+
+    public string? AzureAdAccountId { get; set; }
 }
