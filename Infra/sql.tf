@@ -7,12 +7,6 @@ resource "random_password" "onboarding_password" {
   override_special = "!#$()-_=+[]{}:?"
 }
 
-resource "random_password" "screening_password" {
-  length           = 16
-  special          = true
-  override_special = "!#$()-_=+[]{}:?"
-}
-
 resource "azurerm_mssql_server" "sql_server_onboarding" {
   name                              = "sql-onboarding-demo-001"
   resource_group_name               = azurerm_resource_group.rg_onboarding.name
@@ -20,11 +14,11 @@ resource "azurerm_mssql_server" "sql_server_onboarding" {
   version                           = "12.0"
   administrator_login               = "azureadmin"
   administrator_login_password      = random_password.onboarding_password.result
-  primary_user_assigned_identity_id = azurerm_user_assigned_identity.onboarding_identity.id
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.onboarding_db_identity.id
   identity {
     type = "UserAssigned"
     identity_ids = [
-      azurerm_user_assigned_identity.onboarding_identity.id
+      azurerm_user_assigned_identity.onboarding_db_identity.id
     ]
   }
 
@@ -32,6 +26,12 @@ resource "azurerm_mssql_server" "sql_server_onboarding" {
     login_username = azuread_group.db_admins.display_name
     object_id      = azuread_group.db_admins.object_id
   }
+
+  depends_on = [
+    azuread_app_role_assignment.onboarding_application_read_all,
+    azuread_app_role_assignment.onboarding_groupmember_read_all,
+    azuread_app_role_assignment.onboarding_user_read_all
+  ]
 }
 
 resource "azurerm_mssql_database" "onboarding" {
@@ -75,6 +75,26 @@ resource "azurerm_private_dns_zone_virtual_network_link" "link__private_dns_sql_
   virtual_network_id    = azurerm_virtual_network.vnet_onboarding.id
 }
 
+
+resource "azuread_app_role_assignment" "onboarding_user_read_all" {
+  app_role_id         = azuread_service_principal.msgraph.app_role_ids["User.Read.All"]
+  principal_object_id = azurerm_user_assigned_identity.onboarding_db_identity.principal_id
+  resource_object_id  = azuread_service_principal.msgraph.object_id
+}
+
+resource "azuread_app_role_assignment" "onboarding_groupmember_read_all" {
+  app_role_id         = azuread_service_principal.msgraph.app_role_ids["GroupMember.Read.All"]
+  principal_object_id = azurerm_user_assigned_identity.onboarding_db_identity.principal_id
+  resource_object_id  = azuread_service_principal.msgraph.object_id
+}
+
+resource "azuread_app_role_assignment" "onboarding_application_read_all" {
+  app_role_id         = azuread_service_principal.msgraph.app_role_ids["Application.Read.All"]
+  principal_object_id = azurerm_user_assigned_identity.onboarding_db_identity.principal_id
+  resource_object_id  = azuread_service_principal.msgraph.object_id
+}
+
+
 resource "azuread_service_principal" "msgraph" {
   application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
   use_existing   = true
@@ -85,36 +105,9 @@ resource "azuread_application" "onboarding_admin_app" {
   display_name = "OnboardingAdmin"
   owners       = [data.azuread_client_config.current.object_id]
   lifecycle {
-    ignore_changes = [ required_resource_access ]
+    ignore_changes = [required_resource_access]
   }
 }
-
-resource "azuread_app_role_assignment" "onboarding_user_read_all" {
-  app_role_id         = azuread_service_principal.msgraph.app_role_ids["User.Read.All"]
-  principal_object_id = azurerm_user_assigned_identity.onboarding_identity.principal_id
-  resource_object_id  = azuread_service_principal.msgraph.object_id
-}
-
-resource "azuread_app_role_assignment" "onboarding_groupmember_read_all" {
-  app_role_id         = azuread_service_principal.msgraph.app_role_ids["GroupMember.Read.All"]
-  principal_object_id = azurerm_user_assigned_identity.onboarding_identity.principal_id
-  resource_object_id  = azuread_service_principal.msgraph.object_id
-}
-
-resource "azuread_app_role_assignment" "onboarding_application_read_all" {
-  app_role_id         = azuread_service_principal.msgraph.app_role_ids["Application.Read.All"]
-  principal_object_id = azurerm_user_assigned_identity.onboarding_identity.principal_id
-  resource_object_id  = azuread_service_principal.msgraph.object_id
-}
-
-# resource "azuread_directory_role" "directory_reader_role" {
-#   display_name = "Directory reader"
-# }
-
-# resource "azuread_directory_role_assignment" "directory_reader_role_assignment" {
-#   role_id             = azuread_directory_role.directory_reader_role.template_id
-#   principal_object_id = azuread_service_principal.msgraph.object_id
-# }
 
 resource "azuread_service_principal" "onboarding_admin_spn" {
   application_id               = azuread_application.onboarding_admin_app.application_id
@@ -126,14 +119,14 @@ resource "azuread_service_principal_password" "onboarding_admin_spn_password" {
   service_principal_id = azuread_service_principal.onboarding_admin_spn.object_id
 }
 
-//role assignment for subscription
+//Reader role assignment for subscription for SQL Admin SPN
 resource "azurerm_role_assignment" "subscription_reader_spn" {
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
   principal_id         = azuread_service_principal.onboarding_admin_spn.object_id
 }
 
-
+//SQL Admins AAD security group
 resource "azuread_group" "db_admins" {
   display_name     = "db_admins"
   owners           = [data.azuread_client_config.current.object_id]
@@ -144,11 +137,7 @@ resource "azuread_group" "db_admins" {
   ]
 }
 
-
-
-
-
-//login
+//SQL login in master database
 
 locals {
   login             = azurerm_user_assigned_identity.onboarding_identity.name
@@ -217,7 +206,7 @@ resource "null_resource" "create_sql_login" {
 }
 
 
-///user
+///SQL user in app database
 
 locals {
   connection_string_user = sensitive("data source=${azurerm_mssql_server.sql_server_onboarding.name}.database.windows.net;initial catalog=${azurerm_mssql_database.onboarding.name};encrypt=True;connection timeout=30;")
@@ -283,80 +272,4 @@ resource "null_resource" "create_sql_user_and_roles" {
     azurerm_mssql_database.onboarding,
     null_resource.create_sql_login
   ]
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-////// screening
-
-resource "azurerm_mssql_server" "sql_server_screening" {
-  name                         = "sql-screening-demo-001"
-  resource_group_name          = azurerm_resource_group.rg_screening.name
-  location                     = azurerm_resource_group.rg_screening.location
-  version                      = "12.0"
-  administrator_login          = "azureadmin"
-  administrator_login_password = random_password.screening_password.result
-}
-
-resource "azurerm_mssql_database" "screening" {
-  name           = "sqldb-screening"
-  server_id      = azurerm_mssql_server.sql_server_screening.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  license_type   = "LicenseIncluded"
-  max_size_gb    = 1
-  sku_name       = "Basic"
-  zone_redundant = false
-}
-
-resource "azurerm_private_endpoint" "pe_sql_screening" {
-  name                = "pe-screening"
-  location            = azurerm_resource_group.rg_screening.location
-  resource_group_name = azurerm_resource_group.rg_screening.name
-  subnet_id           = azurerm_subnet.snet_pe_screening.id
-
-  private_dns_zone_group {
-    name                 = "sql-private-endpoint_zg"
-    private_dns_zone_ids = [azurerm_private_dns_zone.private_dns_sql_screening.id]
-  }
-
-  private_service_connection {
-    name                           = "psc_screening"
-    private_connection_resource_id = azurerm_mssql_server.sql_server_screening.id
-    subresource_names              = ["sqlServer"]
-    is_manual_connection           = false
-  }
-}
-
-resource "azurerm_private_dns_zone" "private_dns_sql_screening" {
-  name                = "privatelink.database.windows.net"
-  resource_group_name = azurerm_resource_group.rg_screening.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "link__private_dns_sql_screening" {
-  name                  = "vnetlink_screening"
-  resource_group_name   = azurerm_resource_group.rg_screening.name
-  private_dns_zone_name = azurerm_private_dns_zone.private_dns_sql_screening.name
-  virtual_network_id    = azurerm_virtual_network.vnet_screening.id
 }
