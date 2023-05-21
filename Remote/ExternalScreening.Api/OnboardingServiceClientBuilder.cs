@@ -56,13 +56,6 @@ public static class OnboardingServiceClientBuilder
                 return handler;
             });
 
-        builder.Services.AddScoped<IOnboardingService>(sp =>
-        {
-            var client = sp.GetRequiredService<IHttpClientFactory>().CreateClient("Screening.API");
-            var logger = sp.GetRequiredService<ILogger<OnboardingService>>();
-            return new OnboardingService(client, logger);
-        });
-
         return builder;
     }
 
