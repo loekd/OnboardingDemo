@@ -12,19 +12,19 @@ variable "acr_client_ip" {
 variable "onboarding_app_version" {
   description = "Onboarding app version"
   type        = string
-  default     = "0.38"
+  default     = "0.39"
 }
 
 variable "identity_server_app_version" {
   description = "External screening identity server app version"
   type        = string
-  default     = "0.38"
+  default     = "0.39"
 }
 
 variable "screening_api_app_version" {
   description = "External screening api app version"
   type        = string
-  default     = "0.38"
+  default     = "0.39"
 }
 
 variable "screening_client_secret" {

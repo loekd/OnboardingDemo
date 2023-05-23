@@ -181,16 +181,16 @@ resource "azurerm_container_app" "onboarding_app" {
   ]
 }
 
-//user assigned managed identity to impersonate when calling onboarding api from external screening api
-resource "azurerm_user_assigned_identity" "external_screening_identity" {
-  name                = "external-screening-identity"
+//user assigned managed identity for onboarding api
+resource "azurerm_user_assigned_identity" "onboarding_identity" {
+  name                = "onboarding-identity"
   resource_group_name = azurerm_resource_group.rg_onboarding.name
   location            = azurerm_resource_group.rg_onboarding.location
 }
 
-//user assigned managed identity for onboarding api
-resource "azurerm_user_assigned_identity" "onboarding_identity" {
-  name                = "onboarding-identity"
+//user assigned managed identity for onboarding database
+resource "azurerm_user_assigned_identity" "onboarding_db_identity" {
+  name                = "onboarding-db-identity"
   resource_group_name = azurerm_resource_group.rg_onboarding.name
   location            = azurerm_resource_group.rg_onboarding.location
 }
@@ -211,7 +211,7 @@ resource "azurerm_user_assigned_identity" "screening_identity" {
 
 //user assigned managed identity for screening idp
 resource "azurerm_user_assigned_identity" "screening_idp_identity" {
-  name                = "screening--idp-identity"
+  name                = "screening-idp-identity"
   resource_group_name = azurerm_resource_group.rg_screening.name
   location            = azurerm_resource_group.rg_screening.location
 }

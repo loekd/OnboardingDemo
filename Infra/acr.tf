@@ -1,21 +1,21 @@
 //container registry
 resource "azurerm_container_registry" "acr" {
-  name                = "cronboarding"
-  resource_group_name = azurerm_resource_group.rg_onboarding.name
-  location            = azurerm_resource_group.rg_onboarding.location
-  sku                 = "Premium"
-  admin_enabled       = false
+  name                          = "cronboarding"
+  resource_group_name           = azurerm_resource_group.rg_onboarding.name
+  location                      = azurerm_resource_group.rg_onboarding.location
+  sku                           = "Premium"
+  admin_enabled                 = false
   public_network_access_enabled = true
   network_rule_set = [
     {
       default_action = "Allow"
       ip_rule = [{
-        action = "Allow"
+        action   = "Allow"
         ip_range = var.acr_client_ip
       }]
 
       virtual_network = []
-    }]
+  }]
 }
 
 //enable private link for container registry

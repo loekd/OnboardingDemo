@@ -17,3 +17,5 @@ resource "azurerm_log_analytics_workspace" "la" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
+
+data "azurerm_subscription" "current" {}
