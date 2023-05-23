@@ -23,7 +23,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_SolutionItems", "_Solution
 		Infra\aca.tf = Infra\aca.tf
 		Infra\acr.tf = Infra\acr.tf
 		Infra\certificate.pfx = Infra\certificate.pfx
-		Infra\global_vars.tf = Infra\global_vars.tf
 		Infra\keyvault.tf = Infra\keyvault.tf
 		Infra\main.tf = Infra\main.tf
 		Infra\provider.tf = Infra\provider.tf
