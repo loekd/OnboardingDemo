@@ -6,6 +6,10 @@ resource "azurerm_container_registry" "acr" {
   sku                           = "Premium"
   admin_enabled                 = false
   public_network_access_enabled = true
+  identity {
+    type = "SystemAssigned"
+  }
+
   network_rule_set = [
     {
       default_action = "Allow"
