@@ -30,6 +30,8 @@ resource "azurerm_container_app" "identity_server_app" {
     identity = azurerm_user_assigned_identity.screening_idp_identity.id
   }
   template {
+    min_replicas = var.min_replicas
+    max_replicas = var.max_replicas
     container {
       name   = "screening-idp"
       image  = "cronboarding.azurecr.io/externalscreeningidp:${var.identity_server_app_version}"
@@ -76,6 +78,8 @@ resource "azurerm_container_app" "screening_api_app" {
     identity = azurerm_user_assigned_identity.screening_identity.id
   }
   template {
+    min_replicas = var.min_replicas
+    max_replicas = var.max_replicas
     container {
       name   = "screening-api"
       image  = "cronboarding.azurecr.io/externalscreeningapi:${var.screening_api_app_version}"
@@ -130,6 +134,8 @@ resource "azurerm_container_app" "onboarding_app" {
     identity = azurerm_user_assigned_identity.onboarding_identity.id
   }
   template {
+    min_replicas = var.min_replicas
+    max_replicas = var.max_replicas
     container {
       name   = "onboarding-app"
       image  = "cronboarding.azurecr.io/onboardingserver:${var.onboarding_app_version}"

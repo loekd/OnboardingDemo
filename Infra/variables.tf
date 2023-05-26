@@ -31,3 +31,15 @@ variable "screening_client_secret" {
   description = "Client secret for screening api"
   type        = string
 }
+
+variable "min_replicas" {
+  description = "Minimum number of replicas"
+  type        = number
+  default     = 0
+}
+
+variable "max_replicas" {
+  description = "Maximum number of replicas"
+  type        = number
+  default     = 1
+}
